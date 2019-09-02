@@ -3,9 +3,13 @@ class Stream {
         if(username == "") { throw "Username empty"; }
 
         platform = platform.trim().toLowerCase();
-        if (platform != "mixer" && platform != "twitch") {
-            throw "Invalid platform";
+        if (platform != "mixer" && platform != "twitch" &&
+            platform != "m" && platform != "t") {
+                throw "Invalid platform";
         }
+
+        if(platform == "m") { platform = "mixer"; }
+        if (platform == "t") { platform = "twitch"; }
 
         this.username = username;
         this.platform = platform;
@@ -83,10 +87,12 @@ class Stream {
         var banner = document.createElement("div");
         var channelName = document.createElement("span");
         var channelButton = document.createElement("a");
+        var viewerCount = document.createElement("span");
 
         banner.classList.add("banner");
         banner.appendChild(channelName);
         banner.appendChild(channelButton);
+        banner.appendChild(viewerCount);
 
         channelName.innerText = this.username;
         channelName.classList.add("channelName");
@@ -95,6 +101,10 @@ class Stream {
         channelButton.href = this.getChannelURL();
         channelButton.target = "_blank";
         channelButton.innerText = "Open";
+
+        // TODO Implement
+        viewerCount.classList.add("viewerCount");
+        // viewerCount.innerText = "10 viewers";
 
         switch (this.platform) {
             case "mixer":

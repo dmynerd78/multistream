@@ -19,15 +19,25 @@ head, body {
     justify-content: flex-start;
 }
 
+#stream-chats {
+    display: flex;
+    height: 100%;
+}
+
 .banner {
     display: block;
-    height: 25px;
+    height: 30px;
     color: #fff;
 }
 
 .banner .channelName {
     float: left;
     padding: 5px 5px 5px 15px;
+}
+
+.banner .viewerCount {
+    float: right;
+    padding: 5px;
 }
 
 .banner .channelButton {
