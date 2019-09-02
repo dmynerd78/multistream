@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Multi Chat</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="stream-chats" class="wrapper"></div>
+
+    <script src="script.js"></script>
+    <script>
+        var channelList = [["dmynerd78", "twitch"], ["CallMeCyber", "twitch"]];
+        for (index in channelList) {
+            let channel = channelList[index];
+            let stream = new Stream(channel[0], channel[1]);
+
+            let div = document.createElement("div");
+            div.classList.add("col");
+            div.appendChild(stream.genEmbedVideo());
+            div.appendChild(stream.genBanner());
+            div.appendChild(stream.genEmbedChat());
+
+            document.querySelector("#stream-chats").appendChild(div);
+        }
+    </script>
+</body>
+</html>
