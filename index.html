@@ -9,7 +9,29 @@
 </head>
 <body>
     <div id="stream-gen">
+        <div class="wrapper">
+            <div class="input-group">
+                <input type="text" placeholder="Username" required>
+                <select>
+                    <option value="twitch">Twitch</option>
+                    <option value="mixer">Mixer</option>
+                </select>
+                <button onclick="addStream();">Add Stream</button>
+                <button style="opacity: 0;">Remove</button>
+            </div>
 
+            <div class="input-group">
+                <input type="text" placeholder="Username" required>
+                <select>
+                    <option value="twitch">Twitch</option>
+                    <option value="mixer">Mixer</option>
+                </select>
+                <button onclick="addStream();">Add Stream</button>
+                <button onclick="removeStream(this.parentElement);">Remove</button>
+            </div>
+        </div>
+
+        <button id="submit" onclick="readInputStreams();">Submit</button>
     </div>
 
     <div id="stream-chats" class="hidden"></div>
@@ -17,7 +39,9 @@
     <script src="script.js"></script>
     <script src="stream.js"></script>
     <script>
-        // Example search: "?t:dmynerd78,t:CallMeCyber&novideo"
+        const STREAM_ROW = document.querySelector("#stream-gen .wrapper .input-group:nth-child(2)").cloneNode(true);
+
+        // Example search: "?t:dmynerd78/t:CallMeCyber&novideo"
         var search = window.location.search.substr(1).split("&");
         var streams = search[0].split("/");
         console.log("Parsed arguments:");
@@ -25,33 +49,13 @@
 
         // Load streams from URL
         if(search[0] != "") {
-            document.querySelector("#stream-gen").classList.add("hidden");
-            document.querySelector("#stream-chats").classList.remove("hidden");
-
-            var settings = [];
-            if(search.length > 1) {
-            settings = search[1].split("/");
-            }
-
-            for (index in streams) {
-                let channel = streams[index].split(":");
-                if (channel[0] == "") { continue; } // Ignore blank channel
-
-                let stream = new Stream(channel[1], channel[0]);
-
-                let div = document.createElement("div");
-                div.classList.add("col");
-                if (settings.indexOf("novideo") == -1) { div.appendChild(stream.getPlayer()); }
-                div.appendChild(stream.getBanner());
-                if (settings.indexOf("nochat") == -1) { div.appendChild(stream.getChat()); }
-
-                streams[index] = stream;
-                document.querySelector("#stream-chats").appendChild(div);
+            try {
+                genColumns();
+            } catch(e) {
+                console.error(e);
+                alert(e);
             }
         }
-
-        console.log("Streams:")
-        console.log(streams)
     </script>
 </body>
 </html>

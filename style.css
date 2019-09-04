@@ -12,6 +12,36 @@ head, body {
     display: none !important;
 }
 
+#stream-gen {
+    margin-top: 10%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-direction: column;
+}
+
+#stream-gen .input-group {
+    margin-top: 10px;
+}
+
+.input-group > * {
+    font-size: 125%;
+}
+
+#submit {
+    margin-top: 30px;
+    font-size: 125%;
+}
+
+.input-group {
+    display: flex;
+    align-content: stretch;
+}
+
+.input-group > input {
+    flex: 1 0 auto;
+}
+
 #stream-input {
     margin-top: 10%;
     display: flex;
