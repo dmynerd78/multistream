@@ -31,6 +31,17 @@
             </div>
         </div>
 
+        <div id="extra-options">
+            <span>Extra options
+                <select class="noVideoChat">
+                    <option></option>
+                    <option value="novideo">No Video</option>
+                    <option value="nochat">No Chat</option>
+                </select>
+            </span>
+            <br>
+            <span>No Banner <input type="checkbox" class="noBanner"></span>
+        </div>
         <button id="submit" onclick="readInputStreams();">Submit</button>
     </div>
 
@@ -41,9 +52,14 @@
     <script>
         const STREAM_ROW = document.querySelector("#stream-gen .wrapper .input-group:nth-child(2)").cloneNode(true);
 
-        // Example search: "?t:dmynerd78/t:CallMeCyber&novideo"
+        // Example search: ?t:dmynerd78/t:CallMeCyber&novideo,nobanner
         var search = window.location.search.substr(1).split("&");
-        var streams = search[0].split("/");
+        var streams = search[0].split("+");
+        if(search.length > 1) {
+            var settings = search[1].split("+");
+        } else {
+            var settings = [];
+        }
         console.log("Parsed arguments:");
         console.log(search);
 

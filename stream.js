@@ -9,6 +9,7 @@ class Stream {
         if(username == "") { throw "Username empty"; }
 
         platform = platform.trim().toLowerCase();
+        // TODO Better error checking
         if (platform != "mixer" && platform != "twitch" &&
             platform != "m" && platform != "t") {
                 throw "Invalid platform";
@@ -20,20 +21,29 @@ class Stream {
         this.username = username;
         this.platform = platform;
 
-        this._player = this._genEmbedVideo();
-        this._banner = this._genBanner();
-        this._chat = this._genEmbedChat();
+        this._player = null;
+        this._banner = null;
+        this._chat = null;
     }
 
     getPlayer() {
+        if(this._player === null) {
+            this._player = this._genEmbedVideo();
+        }
         return this._player;
     }
 
     getBanner() {
+        if(this._banner === null) {
+            this._banner = this._genBanner();
+        }
         return this._banner;
     }
 
     getChat() {
+        if(this._chat === null) {
+            this._chat = this._genEmbedChat();
+        }
         return this._chat;
     }
 
@@ -125,7 +135,6 @@ class Stream {
         switch (this.platform) {
             case "mixer":
                 banner.style.background = this.getPlatformColor();
-                // TODO Current viewer polling
                 break;
             case "twitch":
                 banner.style.background = this.getPlatformColor();
