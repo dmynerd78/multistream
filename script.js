@@ -10,7 +10,9 @@ function genColumns() {
             continue;
         }
 
-        let stream = new Stream(channel[1], channel[0]);
+        noAPI = settings.indexOf("noapi") == -1;
+
+        let stream = new Stream(channel[1], channel[0], noAPI);
 
         let div = document.createElement("div");
         div.classList.add("col");
@@ -39,7 +41,7 @@ function addStream() {
     document.querySelector("#stream-gen .wrapper").appendChild(STREAM_ROW.cloneNode(true));
 }
 
-function removeStream(node) {
+function removeDOMElement(node) {
     var parent = node.parentElement;
     parent.removeChild(node);
 }
@@ -71,8 +73,10 @@ function readInputStreams() {
     var dataOptions = [];
     noVideoChat = document.querySelector("#extra-options .noVideoChat").value;
     noBanner = document.querySelector("#extra-options .noBanner").checked;
-    if(noVideoChat != "") { dataOptions.push(noVideoChat); }
+    noAPICalls = document.querySelector("#extra-options .noAPICalls").checked;
+    if (noVideoChat != "") { dataOptions.push(noVideoChat); }
     if (noBanner) { dataOptions.push("nobanner"); }
+    if (noAPICalls) {dataOptions.push("noapi"); }
 
 
     // Add arguments to URL

@@ -1,15 +1,15 @@
-/** Class representation of a stream */
 class Stream {
     /**
      * Create a stream
      * @param {string} username - Username of the channel.
-     * @param {string} y - Platform user is on ("twitch" or "mixer").
+     * @param {string} platform - Platform user is on ("twitch" or "mixer").
+     * @param {boolean} doAPICalls - periodically call APIs for viewer count, live status, etc.
      */
-    constructor(username, platform) {
+    constructor(username, platform, doAPICalls = true) {
         if(username == "") { throw "Username empty"; }
 
+        // username = username.trim().toLowerCase();
         platform = platform.trim().toLowerCase();
-        // TODO Better error checking
         if (platform != "mixer" && platform != "twitch" &&
             platform != "m" && platform != "t") {
                 throw "Invalid platform";
@@ -18,12 +18,14 @@ class Stream {
         if(platform == "m") { platform = "mixer"; }
         if (platform == "t") { platform = "twitch"; }
 
-        this.username = username;
-        this.platform = platform;
+        this._username = username;
+        this._platform = platform;
 
+        // Initially null to prevent unneccesary background JS via iframes
         this._player = null;
         this._banner = null;
         this._chat = null;
+        this._doAPICalls = doAPICalls;
     }
 
     getPlayer() {
@@ -47,21 +49,17 @@ class Stream {
         return this._chat;
     }
 
-    /**
-     * Get stream url.
-     * @return {string} HTTPS url channel
-     */
     getChannelURL() {
-        switch (this.platform) {
+        switch (this._platform) {
             case "mixer":
-                return "https://mixer.com/" + this.username;
+                return "https://mixer.com/" + this._username;
             case "twitch":
-                return "https://twitch.tv/" + this.username;
+                return "https://twitch.tv/" + this._username;
         }
     }
 
     getPlatformColor() {
-         switch (this.platform) {
+         switch (this._platform) {
              case "mixer":
                  return "#1FBAED";
              case "twitch":
@@ -70,20 +68,20 @@ class Stream {
     }
 
     getVideoURL() {
-        switch (this.platform) {
+        switch (this._platform) {
             case "mixer":
-                return "https://mixer.com/embed/player/" + this.username;
+                return "https://mixer.com/embed/player/" + this._username;
             case "twitch":
-                return "https://player.twitch.tv/?channel=" + this.username;
+                return "https://player.twitch.tv/?channel=" + this._username;
         }
     }
 
     getChatURL() {
-        switch (this.platform) {
+        switch (this._platform) {
             case "mixer":
-                return "https://mixer.com/embed/chat/" + this.username;
+                return "https://mixer.com/embed/chat/" + this._username;
             case "twitch":
-                return "https://www.twitch.tv/embed/" + this.username + "/chat";
+                return "https://www.twitch.tv/embed/" + this._username + "/chat";
         }
     }
 
@@ -94,7 +92,7 @@ class Stream {
         iframe.frameBorder = "0";
         iframe.scrolling = "no";
 
-        switch (this.platform) {
+        switch (this._platform) {
             case "mixer":
                 iframe.src = this.getVideoURL();
                 iframe.disableCostream = "true";
@@ -114,13 +112,17 @@ class Stream {
         var channelName = document.createElement("span");
         var channelButton = document.createElement("a");
         var viewerCount = document.createElement("span");
+        var isLiveIcon = document.createElement("div");
 
         banner.classList.add("banner");
         banner.appendChild(channelName);
         banner.appendChild(channelButton);
-        banner.appendChild(viewerCount);
+        if(this._doAPICalls) {
+            banner.appendChild(viewerCount);
+            banner.appendChild(isLiveIcon);
+        }
 
-        channelName.innerText = this.username;
+        channelName.innerText = this._username;
         channelName.classList.add("channelName");
 
         channelButton.classList.add("channelButton");
@@ -128,11 +130,18 @@ class Stream {
         channelButton.target = "_blank";
         channelButton.innerText = "Open";
 
-        // TODO Implement
-        viewerCount.classList.add("viewerCount");
-        // viewerCount.innerText = "10 viewers";
+        isLiveIcon.classList.add("liveIcon");
 
-        switch (this.platform) {
+        viewerCount.classList.add("viewerCount");
+        if (this._doAPICalls) {
+            // Do once immediately
+            this._runAPICalls(viewerCount, isLiveIcon);
+
+            // Do n-many times afterwards
+            setInterval(this._runAPICalls.bind(viewerCount, isLiveIcon), 5 * 60 * 1000);
+        }
+
+        switch (this._platform) {
             case "mixer":
                 banner.style.background = this.getPlatformColor();
                 break;
@@ -152,5 +161,46 @@ class Stream {
         iframe.scrolling = "no";
 
         return iframe;
+    }
+
+    _runAPICalls(viewers, liveIndicator) {
+        console.log(`Polling ${this._username}...`);
+
+        let request = new XMLHttpRequest();
+        switch(this._platform) {
+            case "mixer":
+                request.open("GET", "https://mixer.com/api/v1/channels/" + this._username, true);
+                request.onload = function () {
+                    // Begin accessing JSON data here
+                    let data = JSON.parse(this.response);
+                    if(data.online == false) {
+                        viewers.textContent = "0 Viewers (Not Live)";
+                        liveIndicator.classList.remove("live");
+                    } else {
+                        console.log("Mixer viewr count: " + data.viewersCurrent);
+                        viewers.textContent = data.viewersCurrent + " viewers";
+                        liveIndicator.classList.add("live");
+                    }
+                };
+                break;
+
+            case "twitch":
+                request.open("GET", "https://api.twitch.tv/helix/streams?user_login=" + this._username, true);
+                request.onload = function () {
+                    // Begin accessing JSON data here
+                    let data = JSON.parse(this.response);
+
+                    if(data.data.length == 0) {
+                        viewers.textContent = "0 Viewers (Not Live)";
+                        liveIndicator.classList.remove("live");
+                    } else {
+                        viewers.textContent = data.data[0].viewer_count + " viewers";
+                        liveIndicator.classList.add("live");
+                    }
+                };
+                request.setRequestHeader("CLIENT-ID", "f4mlkz1jrw7cjouyeomk1w5cgu1szd");
+                break;
+        }
+        request.send();
     }
 }
