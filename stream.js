@@ -222,8 +222,6 @@ class Stream {
         request.send();
 
         // Setup next run interval
-        setTimeout(function() {
-            this._runAPICalls(viewers, liveIndicator);
-        }, 3 * 60 * 1000);
+        setTimeout(() => { this._runAPICalls(viewers, liveIndicator); }, 3 * 60 * 1000);
     }
 }
