@@ -27,7 +27,7 @@
                     <option value="mixer">Mixer</option>
                 </select>
                 <button onclick="addStream();">Add Stream</button>
-                <button onclick="removeStream(this.parentElement);">Remove</button>
+                <button onclick="removeDOMElement(this.parentElement);">Remove</button>
             </div>
         </div>
 
@@ -41,7 +41,7 @@
             </span>
             <br>
             <span>No Banner <input type="checkbox" class="noBanner"></span><br>
-            <span>No Viewer Count <input type="checkbox" class="noAPICalls"></span><br>
+            <span>Don't Query Statistics <input type="checkbox" class="noAPICalls"></span><br>
         </div>
         <button id="submit" onclick="readInputStreams();">Submit</button>
     </div>

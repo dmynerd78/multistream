@@ -28,6 +28,27 @@ class Stream {
         this._doAPICalls = doAPICalls;
     }
 
+    static get TWITCH_CLIENT_ID() { return "f4mlkz1jrw7cjouyeomk1w5cgu1szd"; }
+
+    // start is a string that can be parsed by a Date object
+    static get_uptime(start) {
+        let sec = Math.abs(new Date(start).getTime() - Date.now());
+        let mins = Math.floor(sec / 60000);
+        let hrs = Math.floor(mins / 60);
+        let days = Math.floor(hrs / 24);
+        mins = mins % 60;
+        hrs = hrs % 24;
+
+        days = days.toString().padStart(2, "0");
+        hrs = hrs.toString().padStart(2, "0");
+        mins = mins.toString().padStart(2, "0");
+        if (days == 0) {
+            return `${hrs}:${mins}`;
+        } else {
+            return `${days}:${hrs}:${mins}`;
+        }
+    }
+
     getPlayer() {
         if(this._player === null) {
             this._player = this._genEmbedVideo();
@@ -118,6 +139,7 @@ class Stream {
         banner.appendChild(channelName);
         banner.appendChild(channelButton);
         if(this._doAPICalls) {
+
             banner.appendChild(viewerCount);
             banner.appendChild(isLiveIcon);
         }
@@ -134,11 +156,7 @@ class Stream {
 
         viewerCount.classList.add("viewerCount");
         if (this._doAPICalls) {
-            // Do once immediately
             this._runAPICalls(viewerCount, isLiveIcon);
-
-            // Do n-many times afterwards
-            setInterval(this._runAPICalls.bind(viewerCount, isLiveIcon), 5 * 60 * 1000);
         }
 
         switch (this._platform) {
@@ -164,7 +182,7 @@ class Stream {
     }
 
     _runAPICalls(viewers, liveIndicator) {
-        console.log(`Polling ${this._username}...`);
+        console.log(`Polling ${this._username} (${this._platform})...`);
 
         let request = new XMLHttpRequest();
         switch(this._platform) {
@@ -174,11 +192,10 @@ class Stream {
                     // Begin accessing JSON data here
                     let data = JSON.parse(this.response);
                     if(data.online == false) {
-                        viewers.textContent = "0 Viewers (Not Live)";
+                        viewers.textContent = "Not Live";
                         liveIndicator.classList.remove("live");
                     } else {
-                        console.log("Mixer viewr count: " + data.viewersCurrent);
-                        viewers.textContent = data.viewersCurrent + " viewers";
+                        viewers.textContent = `${data.viewersCurrent.toLocaleString()} viewers`;
                         liveIndicator.classList.add("live");
                     }
                 };
@@ -191,16 +208,22 @@ class Stream {
                     let data = JSON.parse(this.response);
 
                     if(data.data.length == 0) {
-                        viewers.textContent = "0 Viewers (Not Live)";
+                        viewers.textContent = "Not Live";
                         liveIndicator.classList.remove("live");
                     } else {
-                        viewers.textContent = data.data[0].viewer_count + " viewers";
+                        let stream = data.data[0];
+                        viewers.textContent = `LIVE | ${stream.viewer_count.toLocaleString()} viewers | Uptime: ${Stream.get_uptime(stream.started_at)}`;
                         liveIndicator.classList.add("live");
                     }
                 };
-                request.setRequestHeader("CLIENT-ID", "f4mlkz1jrw7cjouyeomk1w5cgu1szd");
+                request.setRequestHeader("CLIENT-ID", Stream.TWITCH_CLIENT_ID);
                 break;
         }
         request.send();
+
+        // Setup next run interval
+        setTimeout(function() {
+            this._runAPICalls(viewers, liveIndicator);
+        }, 3 * 60 * 1000);
     }
 }
