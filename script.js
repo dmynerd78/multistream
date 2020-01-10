@@ -1,4 +1,9 @@
-function genColumns() {
+/**
+ * Add all streams to DOM
+ * @param {Array} streams list of all streams with in format "platform:channelName"
+ * @param {Array} settings list of all supported options: "novideo", "nochat", "nobanner", "noapi"
+ */
+function genColumns(streams, settings) {
     document.querySelector("#stream-gen").classList.add("hidden");
     document.querySelector("#stream-chats").classList.remove("hidden");
 
@@ -36,16 +41,26 @@ function genColumns() {
     console.log(streams);
 }
 
+/**
+ * Utility to add a new input row to #stream-gen
+ */
 function addStream() {
     // Deep Clone used to prevent same-reference conflicts
     document.querySelector("#stream-gen .wrapper").appendChild(STREAM_ROW.cloneNode(true));
 }
 
+/**
+ * Remove a given DOM element from the document
+ * @param {dom} node a DOM element you wish to remove
+ */
 function removeDOMElement(node) {
     var parent = node.parentElement;
     parent.removeChild(node);
 }
 
+/**
+ * Read #stream-gen inputs and updates the URL with all the options
+ */
 function readInputStreams() {
     var dataStreams = [];
 

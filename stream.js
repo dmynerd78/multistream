@@ -15,24 +15,30 @@ class Stream {
                 throw "Invalid platform";
         }
 
-        if(platform == "m") { platform = "mixer"; }
+        if (platform == "m") { platform = "mixer"; }
         if (platform == "t") { platform = "twitch"; }
 
         this._username = username;
         this._platform = platform;
 
-        // Initially null to prevent unneccesary background JS via iframes
+        // Initially null to prevent unneccesary background from iframe JS
         this._player = null;
         this._banner = null;
         this._chat = null;
         this._doAPICalls = doAPICalls;
     }
 
+    /**
+     * Return Twitch CLIEND-ID Header value
+     */
     static get TWITCH_CLIENT_ID() { return "f4mlkz1jrw7cjouyeomk1w5cgu1szd"; }
 
-    // start is a string that can be parsed by a Date object
-    static get_uptime(start) {
-        let sec = Math.abs(new Date(start).getTime() - Date.now());
+    /**
+     * Create a hh:ss display (or dd:hh:ss if >24 hours) for a stream's uptime
+     * @param {*} startTime the time a stream started. Must be parsable by JS's Date object
+     */
+    static get_uptime(startTime) {
+        let sec = Math.abs(new Date(startTime).getTime() - Date.now());
         let mins = Math.floor(sec / 60000);
         let hrs = Math.floor(mins / 60);
         let days = Math.floor(hrs / 24);
@@ -49,6 +55,9 @@ class Stream {
         }
     }
 
+    /**
+     * Get the DOM element containing the video player
+     */
     getPlayer() {
         if(this._player === null) {
             this._player = this._genEmbedVideo();
@@ -56,6 +65,9 @@ class Stream {
         return this._player;
     }
 
+    /**
+     * Get the DOM element containing the banner
+     */
     getBanner() {
         if(this._banner === null) {
             this._banner = this._genBanner();
@@ -63,6 +75,9 @@ class Stream {
         return this._banner;
     }
 
+    /**
+     * Get the DOM element containing the chat iframe
+     */
     getChat() {
         if(this._chat === null) {
             this._chat = this._genEmbedChat();
@@ -70,6 +85,9 @@ class Stream {
         return this._chat;
     }
 
+    /**
+     * Ger url to a channel
+     */
     getChannelURL() {
         switch (this._platform) {
             case "mixer":
@@ -79,6 +97,9 @@ class Stream {
         }
     }
 
+    /**
+     * Get platform branding color in hex
+     */
     getPlatformColor() {
          switch (this._platform) {
              case "mixer":
@@ -88,6 +109,9 @@ class Stream {
          }
     }
 
+    /**
+     * Return URL for embedded video player
+     */
     getVideoURL() {
         switch (this._platform) {
             case "mixer":
@@ -97,6 +121,9 @@ class Stream {
         }
     }
 
+    /**
+     * Returns URL for the channel's embedded chat
+     */
     getChatURL() {
         switch (this._platform) {
             case "mixer":
@@ -106,6 +133,9 @@ class Stream {
         }
     }
 
+    /**
+     * Create iframe for video player. Auto mutes the stream
+     */
     _genEmbedVideo() {
         var iframe = document.createElement("iframe");
         iframe.classList.add("player");
@@ -128,6 +158,10 @@ class Stream {
         return iframe;
     }
 
+    /**
+     * Generates a streamer "banner" which contains link to
+     * streamer page along with dom elements for _runAPICalls()
+     */
     _genBanner() {
         var banner = document.createElement("div");
         var channelName = document.createElement("span");
@@ -171,6 +205,9 @@ class Stream {
         return banner;
     }
 
+    /**
+     * Creates iframe element which contains the chat
+     */
     _genEmbedChat() {
         var iframe = document.createElement("iframe");
         iframe.src = this.getChatURL();
@@ -181,6 +218,13 @@ class Stream {
         return iframe;
     }
 
+    /**
+     * Sets up API polling which will give statistics like viewer count, isLive, etc.
+     * It's only needed to call this method once per streamer since the method contains
+     * a setTimeout() which calls it again to update the information periodically
+     * @param {dom} viewers span element which will have it's content updated
+     * @param {dom} liveIndicator div that add/remove live class from
+     */
     _runAPICalls(viewers, liveIndicator) {
         console.log(`Polling ${this._username} (${this._platform})...`);
 
@@ -212,7 +256,7 @@ class Stream {
                         liveIndicator.classList.remove("live");
                     } else {
                         let stream = data.data[0];
-                        viewers.textContent = `LIVE | ${stream.viewer_count.toLocaleString()} viewers | Uptime: ${Stream.get_uptime(stream.started_at)}`;
+                        viewers.textContent = `${stream.viewer_count.toLocaleString()} viewers | Uptime: ${Stream.get_uptime(stream.started_at)}`;
                         liveIndicator.classList.add("live");
                     }
                 };

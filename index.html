@@ -67,7 +67,7 @@
         // Load streams from URL
         if(search[0] != "") {
             try {
-                genColumns();
+                genColumns(streams, settings);
             } catch(e) {
                 console.error(e);
                 alert(e);
