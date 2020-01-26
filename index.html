@@ -48,12 +48,12 @@
 
     <div id="stream-chats" class="hidden"></div>
 
-    <script src="script.js"></script>
+    <script src="utils.js"></script>
     <script src="stream.js"></script>
     <script>
         const STREAM_ROW = document.querySelector("#stream-gen .wrapper .input-group:nth-child(2)").cloneNode(true);
 
-        // Example search: ?t:dmynerd78/t:CallMeCyber&novideo,nobanner
+        // Example search: ?t:dmynerd78+t:CallMeCyber&novideo+nobanner
         var search = window.location.search.substr(1).split("&");
         var streams = search[0].split("+");
         if(search.length > 1) {
@@ -73,6 +73,13 @@
                 alert(e);
             }
         }
+
+        // Used for disabling interactivity with iframes when resizing chat
+        var resizeSheet = document.createElement("style");
+        document.body.appendChild(resizeSheet);
+
+        var chatHeightSheet = document.createElement("style");
+        document.body.appendChild(chatHeightSheet);
     </script>
 </body>
 </html>

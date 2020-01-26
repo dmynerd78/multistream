@@ -101,3 +101,23 @@ function readInputStreams() {
     }
     window.location.search = search;
 }
+
+function clamp(num, min, max) {
+    return num <= min ? min : num >= max ? max : num;
+}
+
+
+var prevChatY;
+/**
+ * Resize all chats to a given height
+ * @param {*} element divWrapper which had it's MouseEvent fired
+ * @param {*} event MouseEvent that was fired
+ */
+function resize(element, event) {
+    const dx = window.prevChatY - event.y;
+    window.prevChatY = event.y;
+
+    let desiredHeight = parseInt(getComputedStyle(element, '').height) + dx;
+    desiredHeight = clamp(desiredHeight, 300, window.innerHeight - 250);
+    window.chatHeightSheet.innerHTML = `.col .chatWrapper { height: ${desiredHeight}px !important; }`;
+}

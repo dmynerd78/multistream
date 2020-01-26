@@ -25,6 +25,7 @@ class Stream {
         this._player = null;
         this._banner = null;
         this._chat = null;
+        this._resizeChat = false;
         this._doAPICalls = doAPICalls;
     }
 
@@ -57,10 +58,13 @@ class Stream {
 
     /**
      * Get the DOM element containing the video player
+     * NOTE: If the player and chat are being added, the video player
+     * *MUST* be added first as it initializes resizing
      */
     getPlayer() {
         if(this._player === null) {
             this._player = this._genEmbedVideo();
+            this._resizeChat = true;
         }
         return this._player;
     }
@@ -182,6 +186,7 @@ class Stream {
         channelName.classList.add("channelName");
 
         channelButton.classList.add("channelButton");
+        channelButton.classList.add("noselect");
         channelButton.href = this.getChannelURL();
         channelButton.target = "_blank";
         channelButton.innerText = "Open";
@@ -209,19 +214,50 @@ class Stream {
      * Creates iframe element which contains the chat
      */
     _genEmbedChat() {
-        var iframe = document.createElement("iframe");
+        let divWrapper = document.createElement("div");
+        divWrapper.classList.add("chatWrapper");
+        divWrapper.classList.add("noselect");
+        if(this._resizeChat) {
+            divWrapper.style.height = "50%";
+        }
+
+        // Resize chat on mousedown of chatWrapper
+        divWrapper.addEventListener("mousedown", function (e) {
+            if (e.offsetY < 5) {
+                let resizeBind = resize.bind(null, divWrapper);
+
+                window.prevChatY = e.y;
+                resizeSheet.innerHTML = "iframe { pointer-events: none; } * { cursor: n-resize; }";
+                document.addEventListener("mousemove", resizeBind, false);
+
+                // Stop resizing on mouseup
+                document.addEventListener("mouseup", function handler(e) {
+                    resizeSheet.innerHTML = "";
+
+                    e.currentTarget.removeEventListener(e.type, handler);
+                    document.removeEventListener("mousemove", resizeBind, false);
+                }, false);
+            }
+        }, false);
+
+        let iframe = document.createElement("iframe");
         iframe.src = this.getChatURL();
         iframe.classList.add("chat");
         iframe.frameBorder = "0";
         iframe.scrolling = "no";
 
+        divWrapper.appendChild(iframe);
+
+        if (this._resizeChat) {
+            return divWrapper;
+        }
         return iframe;
     }
 
     /**
      * Sets up API polling which will give statistics like viewer count, isLive, etc.
      * It's only needed to call this method once per streamer since the method contains
-     * a setTimeout() which calls it again to update the information periodically
+     * a setTimeout() which calls itself again to update the information periodically
      * @param {dom} viewers span element which will have it's content updated
      * @param {dom} liveIndicator div that add/remove live class from
      */
@@ -248,7 +284,6 @@ class Stream {
             case "twitch":
                 request.open("GET", "https://api.twitch.tv/helix/streams?user_login=" + this._username, true);
                 request.onload = function () {
-                    // Begin accessing JSON data here
                     let data = JSON.parse(this.response);
 
                     if(data.data.length == 0) {
