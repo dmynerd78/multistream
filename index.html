@@ -17,7 +17,7 @@
                     <option value="mixer">Mixer</option>
                 </select>
                 <button onclick="addStream();">Add Stream</button>
-                <button style="opacity: 0;">Remove</button>
+                <button class="hide">Remove</button>
             </div>
 
             <div class="input-group">
@@ -33,15 +33,16 @@
 
         <div id="extra-options">
             <span>Extra options
-                <select class="noVideoChat">
+                <select id="noVideoChat">
                     <option></option>
                     <option value="novideo">No Video</option>
                     <option value="nochat">No Chat</option>
                 </select>
             </span>
             <br>
-            <span>No Banner <input type="checkbox" class="noBanner"></span><br>
-            <span>Don't Query Statistics <input type="checkbox" class="noAPICalls"></span><br>
+            <br>
+            <span>No Banner <input type="checkbox" id="noBanner"></span><br>
+            <span>Don't Query Statistics <input type="checkbox" id="noAPICalls"></span><br>
         </div>
         <button id="submit" onclick="readInputStreams();">Submit</button>
     </div>
@@ -72,6 +73,12 @@
                 console.error(e);
                 alert(e);
             }
+
+        // Set focus to first input
+        } else {
+            window.onload = function () {
+                document.querySelector("#stream-gen .wrapper .input-group :first-child").focus()
+            };
         }
 
         // Used for disabling interactivity with iframes when resizing chat
@@ -80,6 +87,17 @@
 
         var chatHeightSheet = document.createElement("style");
         document.body.appendChild(chatHeightSheet);
+
+        // Hide query statistics if banner is disabled
+        document.getElementById("noBanner").addEventListener("change", (e) => {
+            let node = document.getElementById("noAPICalls").parentElement;
+            if(e.srcElement.checked) {
+                node.classList.add("hide");
+            } else {
+                node.classList.remove("hide");
+            }
+        });
+
     </script>
 </body>
 </html>

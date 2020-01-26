@@ -9,8 +9,13 @@ head, body {
     background: #252525;
 }
 
+/* TODO Rename to something that makes the difference more obvious */
 .hidden {
     display: none !important;
+}
+
+.hide {
+    visibility: hidden !important;
 }
 
 #stream-gen {
@@ -23,28 +28,50 @@ head, body {
 
 #stream-gen .input-group {
     margin-top: 10px;
+    height: 2.5em;
 }
 
 .input-group>*, #extra-options {
     font-size: 125%;
 }
 
-#extra-options span * {
-    font-size: 80%;
+input:focus, select:focus, button:focus {
+    box-shadow: inset 0 0 4px #54b7d8;
 }
 
-input:focus, select:focus, button:focus {
-    box-shadow: inset 0 0 10px #77b5ca;
+input[type="checkbox"] {
+    zoom: 1.5;
+    vertical-align: middle;
 }
 
 #extra-options {
-    margin-top: 25px;
+    margin-top: 40px;
     text-align: center;
+}
+
+#extra-options span {
+    margin-top: 20px;
+}
+
+#extra-options span * {
+    font-size: 80%;
 }
 
 #submit {
     margin-top: 30px;
     font-size: 125%;
+}
+
+#stream-gen .wrapper .input-group:first-child > :nth-child(3) {
+    border-radius: 0 5px 5px 0;
+}
+
+.input-group > :first-child {
+    border-radius: 5px 0 0 5px;
+}
+
+.input-group > :last-child {
+    border-radius: 0 5px 5px 0;
 }
 
 .input-group {
@@ -57,7 +84,18 @@ input:focus, select:focus, button:focus {
 }
 
 input.error {
-    background: #dc3546;
+    background: #e94657;
+    border-style: inset;
+    border-color: inherit;
+}
+
+input.error::placeholder {
+    color: black;
+}
+
+.input-group > * {
+    background: #f8f8f8;
+    border-right: #b9b9b9 2px solid;
 }
 
 #stream-input {
