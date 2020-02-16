@@ -94,7 +94,7 @@ input[type="checkbox"] {
     flex: 1 0 auto;
 }
 
-input.error {
+input.error, select.error {
     background: #e94657;
     border-style: inset;
     border-color: inherit;
@@ -104,7 +104,7 @@ input.error::placeholder {
     color: black;
 }
 
-.input-group > * {
+.input-group > *, option {
     background: #f8f8f8;
     border-right: #b9b9b9 2px solid;
 }
