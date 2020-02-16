@@ -9,6 +9,10 @@ head, body {
     background: #252525;
 }
 
+a, a:visited {
+    color: #63BDEB;
+}
+
 /* TODO Rename to something that makes the difference more obvious */
 .hidden {
     display: none !important;
@@ -16,6 +20,13 @@ head, body {
 
 .hide {
     visibility: hidden !important;
+}
+
+#credit {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    padding: 10px;
 }
 
 #stream-gen {

@@ -66,7 +66,7 @@ function readInputStreams() {
 
     // Streamers
     var streams = document.querySelectorAll("#stream-gen .input-group");
-    invalidInput = false;
+    let invalidInput = false;
     streams.forEach(function(inputGroup) {
         username = inputGroup.children[0].value;
         platform = inputGroup.children[1].value;
@@ -76,6 +76,7 @@ function readInputStreams() {
             invalidInput = true;
             return;
         }
+        inputGroup.children[0].classList.remove("error");
 
         dataStreams.push(platform[0] + ":" + username);
     });

@@ -35,16 +35,17 @@
             <span>Extra options
                 <select id="noVideoChat">
                     <option></option>
-                    <option value="novideo">No Video</option>
-                    <option value="nochat">No Chat</option>
+                    <option title="No video embeds" value="novideo">No Video</option>
+                    <option title="No chat embeds" value="nochat">No Chat</option>
                 </select>
             </span>
             <br>
             <br>
-            <span>No Banner <input type="checkbox" id="noBanner"></span><br>
-            <span>Don't Query Statistics <input type="checkbox" id="noAPICalls"></span><br>
+            <label class="noselect" title="Hide small banner which separates strem chat and video">No Banner <input type="checkbox" id="noBanner"></label><br>
+            <label class="noselect" title="Do not query site APIs for things like viewer count channel status">Don't Query Statistics <input type="checkbox" id="noAPICalls"></label><br>
         </div>
         <button id="submit" onclick="readInputStreams();">Submit</button>
+        <span id="credit">Made by <a href="https://twitter.com/dmynerd78" target="_blank">@dmynerd78</a></span>
     </div>
 
     <div id="stream-chats" class="hidden"></div>
@@ -97,7 +98,6 @@
                 node.classList.remove("hide");
             }
         });
-
     </script>
 </body>
 </html>

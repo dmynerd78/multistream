@@ -237,6 +237,14 @@ class Stream {
                     e.currentTarget.removeEventListener(e.type, handler);
                     document.removeEventListener("mousemove", resizeBind, false);
                 }, false);
+
+                // Stop resizing when mouse leaves document
+                document.addEventListener("mouseleave", function handler(e) {
+                    resizeSheet.innerHTML = "";
+
+                    e.currentTarget.removeEventListener(e.type, handler);
+                    document.removeEventListener("mousemove", resizeBind, false);
+                }, false);
             }
         }, false);
 
