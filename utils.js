@@ -71,6 +71,9 @@ function readInputStreams() {
         username = inputGroup.children[0].value;
         platform = inputGroup.children[1].value;
 
+        inputGroup.children[0].classList.remove("error");
+        inputGroup.children[1].classList.remove("error");
+
         if(platform == "") {
             inputGroup.children[1].classList.add("error");
             invalidInput = true;
@@ -80,9 +83,6 @@ function readInputStreams() {
             invalidInput = true;
         }
         if(invalidInput) { return; }
-
-        inputGroup.children[0].classList.remove("error");
-        inputGroup.children[1].classList.remove("error");
 
         dataStreams.push(platform[0] + ":" + username);
     });
