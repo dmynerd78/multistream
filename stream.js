@@ -133,7 +133,7 @@ class Stream {
             case "mixer":
                 return "https://mixer.com/embed/chat/" + this._username;
             case "twitch":
-                return "https://www.twitch.tv/embed/" + this._username + "/chat";
+                return "https://www.twitch.tv/embed/" + this._username + "/chat?darkpopout";
         }
     }
 
