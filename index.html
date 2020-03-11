@@ -18,14 +18,14 @@
 </head>
 <body>
     <div id="stream-gen">
-        <div class="wrapper">
-            <div class="mobile-only">
-                <p>If you seeing this, it means your screen is pretty small.</p>
-                <p>This site was designed for larger resolutions<br>
-                    and may not work well for multiple streams.
-                </p>
-            </div>
+        <div class="mobile-only">
+            <p>If you seeing this, it means your screen is pretty small.</p>
+            <p>This site was designed for larger resolutions<br>
+                and may not work well for multiple streams.
+            </p>
+        </div>
 
+        <div class="wrapper">
             <div class="input-group">
                 <input type="text" placeholder="Username" required>
                 <select>
@@ -57,6 +57,7 @@
             </span>
             <br>
             <br>
+            <!-- TODO Question mark cursor + click = descrition that slides out? -->
             <label class="noselect" title="Hide small banner which separates strem chat and video">No Banner <input type="checkbox" id="noBanner"></label><br>
             <label class="noselect" title="Do not query site APIs for things like viewer count channel status">Don't Query Statistics <input type="checkbox" id="noAPICalls"></label><br>
         </div>
@@ -64,20 +65,21 @@
         <span id="credit">Made by <a href="https://twitter.com/dmynerd78" target="_blank">@dmynerd78</a></span>
     </div>
 
+    <!-- TODO: Add some way of adding more people without having to reload the page -->
     <div id="stream-chats" class="hidden"></div>
 
     <script src="utils.js"></script>
     <script src="stream.js"></script>
     <script>
+        // Deep copy the initial row which has add and remove row buttons
         const STREAM_ROW = document.querySelector("#stream-gen .wrapper .input-group:nth-child(2)").cloneNode(true);
 
         // Example search: ?t:dmynerd78+t:CallMeCyber&novideo+nobanner
         var search = window.location.search.substr(1).split("&");
         var streams = search[0].split("+");
+        var settings = [];
         if(search.length > 1) {
-            var settings = search[1].split("+");
-        } else {
-            var settings = [];
+            settings = search[1].split("+");
         }
         console.log("Parsed arguments:");
         console.log(search);
@@ -91,10 +93,10 @@
                 alert(e);
             }
 
-        // Set focus to first input
         } else {
+            // Set focus to first input
             window.onload = function () {
-                document.querySelector("#stream-gen .wrapper .input-group :first-child").focus()
+                document.querySelector("#stream-gen .wrapper .input-group :first-child").focus();
             };
         }
 
