@@ -13,6 +13,12 @@ a, a:visited {
     color: #63BDEB;
 }
 
+:root {
+    --twitch-color: #6541A5;
+    --mixer-color: #1FBAED;
+    --youtube-color: #CC181E;
+}
+
 /* TODO Rename to something that makes the difference more obvious */
 .hidden {
     display: none !important;
@@ -134,8 +140,14 @@ input.error::placeholder {
     text-shadow: 2px 2px 4px #000000;
 }
 
-.liveIcon {
+.banner .rightWrapper {
+    height: 30px;
     float: right;
+    display: inline-flex;
+    flex-direction: row-reverse;
+}
+
+.liveIcon {
     width: 15px;
     height: 15px;
     margin-top: 6px;
@@ -150,7 +162,6 @@ input.error::placeholder {
 }
 
 .banner .viewerCount {
-    float: right;
     padding: 0 10px;
     line-height: 30px;
     text-shadow: 2px 2px 4px #000000;
@@ -160,7 +171,7 @@ input.error::placeholder {
     color: #fff;
     background: #2c2c2c;
     text-decoration: none;
-    float: right;
+    cursor: pointer;
     height: 100%;
     border: none;
     padding: 5px;

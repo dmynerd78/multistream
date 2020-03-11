@@ -108,6 +108,12 @@ function readInputStreams() {
     window.location.search = search;
 }
 
+/**
+ * Clamps num within the between min and max
+ * @param {int} num number to clamp
+ * @param {int} min minimum return value
+ * @param {int} max maximum return value
+ */
 function clamp(num, min, max) {
     return num <= min ? min : num >= max ? max : num;
 }

@@ -27,6 +27,7 @@ class Stream {
         this._chat = null;
         this._resizeChat = false;
         this._doAPICalls = doAPICalls;
+        this._apiTimeout = null;  // In case setTimeout needs to be cleared
     }
 
     /**
@@ -54,6 +55,20 @@ class Stream {
         } else {
             return `${days}:${hrs}:${mins}`;
         }
+    }
+
+    /**
+     * Return username of streamer
+     */
+    getUsername() {
+        return this._username;
+    }
+
+    /**
+     * Return which platform the streamer is on
+     */
+    getPlatform() {
+        return this._platform;
     }
 
     /**
@@ -102,18 +117,6 @@ class Stream {
     }
 
     /**
-     * Get platform branding color in hex
-     */
-    getPlatformColor() {
-         switch (this._platform) {
-             case "mixer":
-                 return "#1FBAED";
-             case "twitch":
-                 return "#6441A4";
-         }
-    }
-
-    /**
      * Return URL for embedded video player
      */
     getVideoURL() {
@@ -141,7 +144,7 @@ class Stream {
      * Create iframe for video player. Auto mutes the stream
      */
     _genEmbedVideo() {
-        var iframe = document.createElement("iframe");
+        let iframe = document.createElement("iframe");
         iframe.classList.add("player");
         iframe.allowFullscreen = "true";
         iframe.frameBorder = "0";
@@ -167,20 +170,23 @@ class Stream {
      * streamer page along with dom elements for _runAPICalls()
      */
     _genBanner() {
-        var banner = document.createElement("div");
-        var channelName = document.createElement("span");
-        var channelButton = document.createElement("a");
-        var viewerCount = document.createElement("span");
-        var isLiveIcon = document.createElement("div");
+        let banner = document.createElement("div");
+        let channelName = document.createElement("span");
+        let rightWrapper = document.createElement("div");
+        let channelButton = document.createElement("a");
+        let viewerCount = document.createElement("span");
+        let isLiveIcon = document.createElement("div");
 
         banner.classList.add("banner");
         banner.appendChild(channelName);
-        banner.appendChild(channelButton);
-        if(this._doAPICalls) {
+        rightWrapper.appendChild(channelButton);
 
-            banner.appendChild(viewerCount);
-            banner.appendChild(isLiveIcon);
+        if(this._doAPICalls) {
+            rightWrapper.appendChild(viewerCount);
+            rightWrapper.appendChild(isLiveIcon);
         }
+
+        rightWrapper.classList.add("rightWrapper");
 
         channelName.innerText = this._username;
         channelName.classList.add("channelName");
@@ -198,15 +204,9 @@ class Stream {
             this._runAPICalls(viewerCount, isLiveIcon);
         }
 
-        switch (this._platform) {
-            case "mixer":
-                banner.style.background = this.getPlatformColor();
-                break;
-            case "twitch":
-                banner.style.background = this.getPlatformColor();
-                break;
-        }
+        banner.appendChild(rightWrapper);
 
+        banner.style.background = `var(--${this._platform}-color)`;
         return banner;
     }
 
@@ -277,7 +277,6 @@ class Stream {
             case "mixer":
                 request.open("GET", "https://mixer.com/api/v1/channels/" + this._username, true);
                 request.onload = function () {
-                    // Begin accessing JSON data here
                     let data = JSON.parse(this.response);
                     if(data.online == false) {
                         viewers.textContent = "Not Live";
@@ -309,6 +308,6 @@ class Stream {
         request.send();
 
         // Setup next run interval
-        setTimeout(() => { this._runAPICalls(viewers, liveIndicator); }, 3 * 60 * 1000);
+        this._apiTimeout = setTimeout(() => { this._runAPICalls(viewers, liveIndicator); }, 1.5 * 60 * 1000);
     }
 }
