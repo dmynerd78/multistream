@@ -147,6 +147,11 @@ input.error::placeholder {
     flex-direction: row-reverse;
 }
 
+.rightWrapper .icon {
+    padding-right: 10px;
+    cursor: pointer;
+}
+
 .liveIcon {
     width: 15px;
     height: 15px;

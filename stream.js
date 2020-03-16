@@ -144,11 +144,7 @@ class Stream {
      * Create iframe for video player. Auto mutes the stream
      */
     _genEmbedVideo() {
-        let iframe = document.createElement("iframe");
-        iframe.classList.add("player");
-        iframe.allowFullscreen = "true";
-        iframe.frameBorder = "0";
-        iframe.scrolling = "no";
+        let iframe = htmlToElement("<iframe class='player' allowfullscreen='true' frameborder='0' scrolling='no'></iframe>");
 
         switch (this._platform) {
             case "mixer":
@@ -170,43 +166,28 @@ class Stream {
      * streamer page along with dom elements for _runAPICalls()
      */
     _genBanner() {
-        let banner = document.createElement("div");
-        let channelName = document.createElement("span");
-        let rightWrapper = document.createElement("div");
-        let channelButton = document.createElement("a");
-        let viewerCount = document.createElement("span");
-        let isLiveIcon = document.createElement("div");
+        let banner = htmlToElement(`<div class='banner' style='background: var(--${this._platform}-color);'></div>`);
+        let channelName = htmlToElement(`<span class='channelName'>${this._username}</span>`);
+        let rightWrapper = htmlToElement("<div class='rightWrapper'></div>");
+        let channelButton = htmlToElement(`<a href='${this.getChannelURL()}' target='_blank' class='channelButton noselect'>Open</a>`);
+        let viewerCount = htmlToElement("<span class='viewerCount'></span>");
+        let isLiveIcon = htmlToElement("<div class='liveIcon'></div>");
 
-        banner.classList.add("banner");
         banner.appendChild(channelName);
+        banner.appendChild(rightWrapper);
         rightWrapper.appendChild(channelButton);
+        rightWrapper.appendChild(removeStream);
+        rightWrapper.appendChild(addStream);
 
         if(this._doAPICalls) {
             rightWrapper.appendChild(viewerCount);
             rightWrapper.appendChild(isLiveIcon);
         }
 
-        rightWrapper.classList.add("rightWrapper");
-
-        channelName.innerText = this._username;
-        channelName.classList.add("channelName");
-
-        channelButton.classList.add("channelButton");
-        channelButton.classList.add("noselect");
-        channelButton.href = this.getChannelURL();
-        channelButton.target = "_blank";
-        channelButton.innerText = "Open";
-
-        isLiveIcon.classList.add("liveIcon");
-
-        viewerCount.classList.add("viewerCount");
         if (this._doAPICalls) {
             this._runAPICalls(viewerCount, isLiveIcon);
         }
 
-        banner.appendChild(rightWrapper);
-
-        banner.style.background = `var(--${this._platform}-color)`;
         return banner;
     }
 
@@ -214,9 +195,7 @@ class Stream {
      * Creates iframe element which contains the chat
      */
     _genEmbedChat() {
-        let divWrapper = document.createElement("div");
-        divWrapper.classList.add("chatWrapper");
-        divWrapper.classList.add("noselect");
+        let divWrapper = htmlToElement("<div class='chatWrapper noselect'></div>");
         if(this._resizeChat) {
             divWrapper.style.height = "50%";
         }
@@ -248,11 +227,7 @@ class Stream {
             }
         }, false);
 
-        let iframe = document.createElement("iframe");
-        iframe.src = this.getChatURL();
-        iframe.classList.add("chat");
-        iframe.frameBorder = "0";
-        iframe.scrolling = "no";
+        let iframe = htmlToElement(`<iframe src='${this.getChatURL()}' class='chat' frameborder='0' scrolling='no'></iframe>`);
 
         divWrapper.appendChild(iframe);
 
