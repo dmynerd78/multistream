@@ -176,8 +176,6 @@ class Stream {
         banner.appendChild(channelName);
         banner.appendChild(rightWrapper);
         rightWrapper.appendChild(channelButton);
-        rightWrapper.appendChild(removeStream);
-        rightWrapper.appendChild(addStream);
 
         if(this._doAPICalls) {
             rightWrapper.appendChild(viewerCount);
