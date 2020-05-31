@@ -36,6 +36,13 @@ class Stream {
     static get TWITCH_CLIENT_ID() { return "f4mlkz1jrw7cjouyeomk1w5cgu1szd"; }
 
     /**
+     * Return temporary OAuth key.
+     * Key will expire in a month or two and will need to be replaced
+     * Get new one with POST https://id.twitch.tv/oauth2/token?grant_type=client_credentials&client_id={}&client_secret={}
+     */
+    static get TWITCH_OAUTH_ID() { return "jotxtukprcgp4zwmosrd2tlpullwx8"; }
+
+    /**
      * Create a hh:ss display (or dd:hh:ss if >24 hours) for a stream's uptime
      * @param {*} startTime the time a stream started. Must be parsable by JS's Date object
      */
@@ -276,6 +283,7 @@ class Stream {
                     }
                 };
                 request.setRequestHeader("CLIENT-ID", Stream.TWITCH_CLIENT_ID);
+                request.setRequestHeader("Authorization", `Bearer ${Stream.TWITCH_OAUTH_ID}`);
                 break;
         }
         request.send();
