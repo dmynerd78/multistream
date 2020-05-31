@@ -3,7 +3,7 @@
  * @param {Array} streams list of all streams with in format "platform:channelName"
  * @param {Array} settings list of all supported options: "novideo", "nochat", "nobanner", "noapi"
  */
-function genColumns(streams, settings) {
+function genColumns(streams, settings, streamColumns) {
     document.querySelector("#stream-gen").classList.add("hidden");
     document.querySelector("#stream-chats").classList.remove("hidden");
 
@@ -14,6 +14,8 @@ function genColumns(streams, settings) {
         if (channel[0] == "") {
             continue;
         }
+
+        // TODO Skip channels already added?
 
         noAPI = settings.indexOf("noapi") == -1;
 
@@ -33,12 +35,11 @@ function genColumns(streams, settings) {
             div.appendChild(stream.getChat());
         }
 
-        streams[index] = stream;
+        streamColumns.push(stream);
         document.querySelector("#stream-chats").appendChild(div);
     }
 
-    console.log("Streams:");
-    console.log(streams);
+    return streamColumns;
 }
 
 /**
@@ -134,6 +135,28 @@ function resize(element, event) {
     window.chatHeightSheet.innerHTML = `.col .chatWrapper { height: ${desiredHeight}px !important; }`;
 }
 
+/**
+ * Remove a stream from #stream-chats.
+ * If it removes the last stream, it'll auto show the generate new multi
+ * by removing the search component of window.location
+ * @param {string} username the name of the streamer to remove
+ */
+function removeDOMStream(username) {
+    // FIXME Mixer not working
+    for(i = 0; i < streamColumns.length; i++) {
+        let currCol = streamColumns[i];
+
+        if (currCol.getUsername().toLowerCase() == username.toLowerCase()) {
+            currCol.stopAPICalls();
+
+            let removeSearch = currCol.getPlatform().substr(0, 1) + ":" + currCol.getUsername();
+            removeDOMElement(document.querySelector(`#stream-chats .col:nth-child(${i+1})`));
+            urlParser.removeStream(removeSearch);
+            streamColumns.splice(i, 1);
+            return;
+        }
+    }
+}
 
 /**
  * Create DOM element given HTML string representation
@@ -146,4 +169,92 @@ function htmlToElement(html) {
     html = html.trim(); // Never return a text node of whitespace as the result
     template.innerHTML = html;
     return template.content.firstChild;
+}
+
+class URLParams {
+    constructor(search) {
+        if(search.startsWith("?")) {
+            search = search.substr(1);
+        }
+
+        search = search.split("&");
+        this._streams = search[0].split("+");
+        this._settings = [];
+        if (search.length > 1) {
+            this._settings = search[1].split("+");
+        }
+
+        console.log("Parsed arguments:");
+        console.log({"streams": this._streams, "settings": this._settings});
+    }
+
+    isValid() {
+        return this._streams.length != 0 && this._streams[0] != "";
+    }
+
+    /**
+     * Add a stream to the URL. Returns true if added false it's a duplicate
+     * @param {string} platform either "mixer" or "twitch"
+     * @param {string} username username of the player to add
+     */
+    addStream(platform, username) {
+        platform = platform.slice(0, 1).toLowerCase();
+        let checkString = platform + ":" + username.toLowerCase();
+        for(let index in this._streams) {
+            let currStream = this._streams[index].toLowerCase();
+
+            if (currStream == checkString) {
+                return false;
+            }
+        }
+
+        this._streams.push(`${platform}:${username}`);
+        this.updateSearch();
+        return true;
+    }
+
+    /**
+     * Remove a stream from the URL. Returns true if removed. False if not found in URL
+     * @param {string} stream a string in the format "<platform_prefix>:<username>"
+     * where platform_prefix is "m" for Mixer and "t" for Twitch
+     * where username is the username of the channel
+     */
+    removeStream(stream) {
+        stream = stream.toLowerCase();
+        for(i=0; i<this._streams.length; i++) {
+            if(this._streams[i].toLowerCase() == stream) {
+                this._streams.splice(i, 1);
+                this.updateSearch();
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // TODO Check to see if removing last stream
+    updateSearch() {
+        if(this._streams.length == 0) {
+            document.querySelector("#stream-gen").classList.remove("hidden");
+            document.querySelector("#stream-chats").classList.add("hidden");
+            history.pushState(null, '', window.location.pathname);
+            return;
+        }
+
+        let search = this._streams.join("+");
+        if(this._settings.length != 0) {
+            search += "&" + this._settings.join("+");
+        }
+        let newPath = window.location.pathname + '?' + search;
+        history.pushState(null, '', newPath);
+        // history.replaceState(null, '', newPath);
+    }
+
+    getStreams() {
+        return this._streams.slice();
+    }
+
+    getSettings() {
+        return this._settings.slice();
+    }
 }

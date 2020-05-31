@@ -173,20 +173,55 @@ class Stream {
      * streamer page along with dom elements for _runAPICalls()
      */
     _genBanner() {
+        // TODO Adding new stream should double banner size and have stream input below
         let banner = htmlToElement(`<div class='banner' style='background: var(--${this._platform}-color);'></div>`);
         let channelName = htmlToElement(`<span class='channelName'>${this._username}</span>`);
-        let rightWrapper = htmlToElement("<div class='rightWrapper'></div>");
-        let channelButton = htmlToElement(`<a href='${this.getChannelURL()}' target='_blank' class='channelButton noselect'>Open</a>`);
+        let openStream = htmlToElement(`<div class='rightWrapper'><a href='${this.getChannelURL()}' target='_blank' rel='noopener' class='channelButton noselect'>Open</a></div>`);
+        let updateCols = htmlToElement("<div class='rightWrapper'></div>");
+        let addStreamIcon = htmlToElement("<a title='Add Stream' class='addStream icon'>&#x2795</a>");
+        let streamInput = htmlToElement(`<div class="inner-input-group hidden">
+                <input type="text" size="12" placeholder="Username" required>
+                <select style="width: 62px;">
+                    <option value="twitch">Twitch</option>
+                    <option value="mixer">Mixer</option>
+                </select>
+            </div>`);
+        let removeStreamIcon = htmlToElement(`<a title='Remove stream' class='removeStream icon' onclick='removeDOMStream("${this._username}");'>&#x2796;</a>`);
         let viewerCount = htmlToElement("<span class='viewerCount'></span>");
         let isLiveIcon = htmlToElement("<div class='liveIcon'></div>");
 
+        let streamInputCancel = htmlToElement("<button>Cancel</button>");
+        streamInputCancel.onclick = () => streamInput.classList.add("hidden");
+
+        let streamInputAdd = htmlToElement("<button>Add</button>");
+        streamInputAdd.onclick = function () {
+            let username = streamInput.getElementsByTagName("input")[0].value.trim();
+            if(username.length == 0) {
+                return;
+            }
+            let platform = streamInput.getElementsByTagName("select")[0].value;
+            let stream = [`${platform.substr(0, 1)}:${username}`];
+
+            window.streamColumns = genColumns(stream, window.urlParser.getSettings(), window.streamColumns);
+            window.urlParser.addStream(platform, username);
+            streamInput.classList.add("hidden");
+            streamInput.getElementsByTagName("input")[0].value = "";
+        };
+
+        streamInput.appendChild(streamInputAdd);
+        streamInput.appendChild(streamInputCancel);
+        addStreamIcon.onclick = () => streamInput.classList.remove("hidden");
+
         banner.appendChild(channelName);
-        banner.appendChild(rightWrapper);
-        rightWrapper.appendChild(channelButton);
+        banner.appendChild(openStream);
+        banner.appendChild(updateCols);
+        updateCols.appendChild(removeStreamIcon);
+        updateCols.appendChild(addStreamIcon);
+        updateCols.appendChild(streamInput);
 
         if(this._doAPICalls) {
-            rightWrapper.appendChild(viewerCount);
-            rightWrapper.appendChild(isLiveIcon);
+            updateCols.appendChild(viewerCount);
+            updateCols.appendChild(isLiveIcon);
         }
 
         if (this._doAPICalls) {
@@ -250,7 +285,7 @@ class Stream {
      * @param {dom} liveIndicator div that add/remove live class from
      */
     _runAPICalls(viewers, liveIndicator) {
-        console.log(`Polling ${this._username} (${this._platform})...`);
+        console.info(`Polling ${this._username} (${this._platform})...`);
 
         let request = new XMLHttpRequest();
         switch(this._platform) {
@@ -270,6 +305,7 @@ class Stream {
 
             case "twitch":
                 request.open("GET", "https://api.twitch.tv/helix/streams?user_login=" + this._username, true);
+
                 request.onload = function () {
                     let data = JSON.parse(this.response);
 
@@ -290,5 +326,13 @@ class Stream {
 
         // Setup next run interval
         this._apiTimeout = setTimeout(() => { this._runAPICalls(viewers, liveIndicator); }, 1.5 * 60 * 1000);
+    }
+
+    /**
+     * Stop API polling for said stream.
+     * *You can not restart API Polling again once this is called*
+     */
+    stopAPICalls() {
+        clearTimeout(this._apiTimeout);
     }
 }

@@ -51,21 +51,20 @@
             <span>Extra options
                 <select id="noVideoChat">
                     <option></option>
-                    <option title="No video embeds" value="novideo">No Video</option>
-                    <option title="No chat embeds" value="nochat">No Chat</option>
+                    <option title="Do not show video for all streamers" value="novideo">No Video</option>
+                    <option title="Do not show chat for all streamers" value="nochat">No Chat</option>
                 </select>
             </span>
             <br>
             <br>
             <!-- TODO Question mark cursor + click = descrition that slides out? -->
-            <label class="noselect" title="Hide small banner which separates strem chat and video">No Banner <input type="checkbox" id="noBanner"></label><br>
+            <label class="noselect" title="Hide small banner which separates strem chat and video. Gives a way to add more streams dynamically and (if query statistics is enabled) shows live viewer count">No Banner <input type="checkbox" id="noBanner"></label><br>
             <label class="noselect" title="Do not query site APIs for things like viewer count channel status">Don't Query Statistics <input type="checkbox" id="noAPICalls"></label><br>
         </div>
         <button id="submit" onclick="readInputStreams();">Submit</button>
-        <span id="credit">Made by <a href="https://twitter.com/dmynerd78" target="_blank">@dmynerd78</a></span>
+        <span id="credit">Made by <a href="https://twitter.com/dmynerd78" target="_blank" rel="noopener">@dmynerd78</a></span>
     </div>
 
-    <!-- TODO: Add some way of adding more people without having to reload the page -->
     <div id="stream-chats" class="hidden"></div>
 
     <script src="utils.js"></script>
@@ -74,20 +73,16 @@
         // Deep copy the initial row which has add and remove row buttons
         const STREAM_ROW = document.querySelector("#stream-gen .wrapper .input-group:nth-child(2)").cloneNode(true);
 
+        // TODO Check if browser is IE?
+
         // Example search: ?t:dmynerd78+t:CallMeCyber&novideo+nobanner
-        var search = window.location.search.substr(1).split("&");
-        var streams = search[0].split("+");
-        var settings = [];
-        if(search.length > 1) {
-            settings = search[1].split("+");
-        }
-        console.log("Parsed arguments:");
-        console.log(search);
+        var urlParser = new URLParams(window.location.search);
 
         // Load streams from URL
-        if(search[0] != "") {
+        var streamColumns = [];
+        if(urlParser.isValid()) {
             try {
-                genColumns(streams, settings);
+                streamColumns = genColumns(urlParser.getStreams(), urlParser.getSettings(), streamColumns);
             } catch(e) {
                 console.error(e);
                 alert(e);
@@ -95,9 +90,7 @@
 
         } else {
             // Set focus to first input
-            window.onload = function () {
-                document.querySelector("#stream-gen .wrapper .input-group :first-child").focus();
-            };
+            window.onload = () => document.querySelector("#stream-gen .wrapper .input-group :first-child").focus();
         }
 
         // Used for disabling interactivity with iframes when resizing chat

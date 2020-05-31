@@ -115,6 +115,11 @@ input.error::placeholder {
     border-right: #b9b9b9 2px solid;
 }
 
+.inner-input-group {
+    display: flex;
+    margin-right: 5px;
+}
+
 #stream-input {
     margin-top: 10%;
     display: flex;
