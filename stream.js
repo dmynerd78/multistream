@@ -18,7 +18,7 @@ class Stream {
         if (platform == "m") { platform = "mixer"; }
         if (platform == "t") { platform = "twitch"; }
 
-        this._username = username;
+        this._username = username.trim();
         this._platform = platform;
 
         // Initially null to prevent unneccesary background from iframe JS
@@ -72,7 +72,7 @@ class Stream {
     }
 
     /**
-     * Return which platform the streamer is on
+     * Returns full platform name that the streamer is on (all lower case)
      */
     getPlatform() {
         return this._platform;
@@ -173,25 +173,28 @@ class Stream {
      * streamer page along with dom elements for _runAPICalls()
      */
     _genBanner() {
-        // TODO Adding new stream should double banner size and have stream input below
+        // TODO Option to hide video/chat per column
         let banner = htmlToElement(`<div class='banner' style='background: var(--${this._platform}-color);'></div>`);
+        let bannerTop = htmlToElement("<div class='top'></div>");
+        let bannerBot = htmlToElement("<div class='bot hidden'></div>");
         let channelName = htmlToElement(`<span class='channelName'>${this._username}</span>`);
-        let openStream = htmlToElement(`<div class='rightWrapper'><a href='${this.getChannelURL()}' target='_blank' rel='noopener' class='channelButton noselect'>Open</a></div>`);
         let updateCols = htmlToElement("<div class='rightWrapper'></div>");
-        let addStreamIcon = htmlToElement("<a title='Add Stream' class='addStream icon'>&#x2795</a>");
-        let streamInput = htmlToElement(`<div class="inner-input-group hidden">
-                <input type="text" size="12" placeholder="Username" required>
-                <select style="width: 62px;">
+        let addStreamIcon = htmlToElement("<a title='Add another stream' class='addStream icon'>&#x2795</a>");
+        let removeStreamIcon = htmlToElement("<a title='Remove this stream' class='removeStream icon'>&#x2796;</a>");
+        removeStreamIcon.onclick = () => removeDOMStream(this._username, window.streamColumns);
+
+        let streamInput = htmlToElement(`<div class="inner-input-group rightWrapper">
+                <input type="text" placeholder="Username" required>
+                <select>
                     <option value="twitch">Twitch</option>
                     <option value="mixer">Mixer</option>
                 </select>
             </div>`);
-        let removeStreamIcon = htmlToElement(`<a title='Remove stream' class='removeStream icon' onclick='removeDOMStream("${this._username}");'>&#x2796;</a>`);
         let viewerCount = htmlToElement("<span class='viewerCount'></span>");
         let isLiveIcon = htmlToElement("<div class='liveIcon'></div>");
 
         let streamInputCancel = htmlToElement("<button>Cancel</button>");
-        streamInputCancel.onclick = () => streamInput.classList.add("hidden");
+        streamInputCancel.onclick = () => bannerBot.classList.add("hidden");
 
         let streamInputAdd = htmlToElement("<button>Add</button>");
         streamInputAdd.onclick = function () {
@@ -202,27 +205,36 @@ class Stream {
             let platform = streamInput.getElementsByTagName("select")[0].value;
             let stream = [`${platform.substr(0, 1)}:${username}`];
 
-            window.streamColumns = genColumns(stream, window.urlParser.getSettings(), window.streamColumns);
+            window.streamColumns = genColumns(stream, window.urlParser.getSettings(), window.streamColumns, streamInputAdd.closest(".col"));
             window.urlParser.addStream(platform, username);
-            streamInput.classList.add("hidden");
+            bannerBot.classList.add("hidden");
             streamInput.getElementsByTagName("input")[0].value = "";
         };
 
         streamInput.appendChild(streamInputAdd);
         streamInput.appendChild(streamInputCancel);
-        addStreamIcon.onclick = () => streamInput.classList.remove("hidden");
+        addStreamIcon.onclick = function() {
+            if (Math.floor(window.innerWidth / window.streamColumns.length) < 300) {
+                alert("Max number of columns reached for this specific window size. To add more, increase window size.");
+                return;
+            }
+            bannerBot.classList.remove("hidden");
+        };
 
-        banner.appendChild(channelName);
-        banner.appendChild(openStream);
-        banner.appendChild(updateCols);
-        updateCols.appendChild(removeStreamIcon);
-        updateCols.appendChild(addStreamIcon);
-        updateCols.appendChild(streamInput);
+        bannerTop.appendChild(channelName);
+        bannerTop.appendChild(updateCols);
+        banner.appendChild(bannerTop);
 
-        if(this._doAPICalls) {
+        if (this._doAPICalls) {
             updateCols.appendChild(viewerCount);
             updateCols.appendChild(isLiveIcon);
         }
+        updateCols.appendChild(addStreamIcon);
+        updateCols.appendChild(removeStreamIcon);
+        updateCols.appendChild(htmlToElement(`<a href='${this.getChannelURL()}' target='_blank' rel='noopener' class='channelButton noselect'>Open</a>`));
+        bannerBot.appendChild(streamInput);
+        banner.appendChild(bannerBot);
+
 
         if (this._doAPICalls) {
             this._runAPICalls(viewerCount, isLiveIcon);
@@ -237,7 +249,7 @@ class Stream {
     _genEmbedChat() {
         let divWrapper = htmlToElement("<div class='chatWrapper noselect'></div>");
         if(this._resizeChat) {
-            divWrapper.style.height = "50%";
+            divWrapper.style.height = "70%";
         }
 
         // Resize chat on mousedown of chatWrapper
@@ -314,7 +326,7 @@ class Stream {
                         liveIndicator.classList.remove("live");
                     } else {
                         let stream = data.data[0];
-                        viewers.textContent = `${stream.viewer_count.toLocaleString()} viewers | Uptime: ${Stream.get_uptime(stream.started_at)}`;
+                        viewers.textContent = ` Uptime: ${Stream.get_uptime(stream.started_at)} | ${stream.viewer_count.toLocaleString()} viewers`;
                         liveIndicator.classList.add("live");
                     }
                 };
@@ -325,7 +337,7 @@ class Stream {
         request.send();
 
         // Setup next run interval
-        this._apiTimeout = setTimeout(() => { this._runAPICalls(viewers, liveIndicator); }, 1.5 * 60 * 1000);
+        this._apiTimeout = setTimeout(() => { this._runAPICalls(viewers, liveIndicator); }, 60 * 1000);
     }
 
     /**

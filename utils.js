@@ -1,11 +1,15 @@
 /**
  * Add all streams to DOM
  * @param {Array} streams list of all streams with in format "platform:channelName"
- * @param {Array} settings list of all supported options: "novideo", "nochat", "nobanner", "noapi"
+ * @param {Array} settings list of options to skip: "novideo", "nochat", "nobanner", "noapi"
+ * @param {Array} streamColumns list of all streams added to DOM
+ * @param {DOM} startCol if specified, add column *after* startCol. Else add to end of all columns
  */
-function genColumns(streams, settings, streamColumns) {
+function genColumns(streams, settings, streamColumns, startCol=null) {
     document.querySelector("#stream-gen").classList.add("hidden");
     document.querySelector("#stream-chats").classList.remove("hidden");
+
+    console.log(startCol);
 
     for (var index in streams) {
         let channel = streams[index].split(":");
@@ -15,28 +19,37 @@ function genColumns(streams, settings, streamColumns) {
             continue;
         }
 
-        // TODO Skip channels already added?
-
         noAPI = settings.indexOf("noapi") == -1;
+        let plat = channel[0];
+        let user = channel[1];
 
-        let stream = new Stream(channel[1], channel[0], noAPI);
+        // Skip user if already exists
+        let skipUser = false;
+        for(let i=0; i< streamColumns.length; i++) {
+            let s = streamColumns[i];
 
-        let div = document.createElement("div");
-        div.classList.add("col");
-        if (settings.indexOf("novideo") == -1) {
-            div.appendChild(stream.getPlayer());
+            if(s.getUsername() == user && s.getPlatform().substr(0, 1) == plat) {
+                skipUser = true;
+                break;
+            }
+        }
+        if(skipUser) {
+            continue;
         }
 
-        if (settings.indexOf("nobanner") == -1) {
-            div.appendChild(stream.getBanner());
-        }
+        let stream = new Stream(user, plat, noAPI);
 
-        if (settings.indexOf("nochat") == -1) {
-            div.appendChild(stream.getChat());
-        }
+        let div = htmlToElement("<div class='col'></div>");
+        if (settings.indexOf("novideo") == -1) { div.appendChild(stream.getPlayer()); }
+        if (settings.indexOf("nobanner") == -1) { div.appendChild(stream.getBanner()); }
+        if (settings.indexOf("nochat") == -1) { div.appendChild(stream.getChat()); }
 
         streamColumns.push(stream);
-        document.querySelector("#stream-chats").appendChild(div);
+        if (startCol === null || startCol.nextSibling === null) {
+            document.querySelector("#stream-chats").appendChild(div);
+        } else {
+            document.getElementById("stream-chats").insertBefore(div, startCol.nextSibling);
+        }
     }
 
     return streamColumns;
@@ -141,8 +154,7 @@ function resize(element, event) {
  * by removing the search component of window.location
  * @param {string} username the name of the streamer to remove
  */
-function removeDOMStream(username) {
-    // FIXME Mixer not working
+function removeDOMStream(username, streamColumns) {
     for(i = 0; i < streamColumns.length; i++) {
         let currCol = streamColumns[i];
 
@@ -232,7 +244,6 @@ class URLParams {
         return false;
     }
 
-    // TODO Check to see if removing last stream
     updateSearch() {
         if(this._streams.length == 0) {
             document.querySelector("#stream-gen").classList.remove("hidden");
