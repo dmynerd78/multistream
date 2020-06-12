@@ -1,3 +1,5 @@
+// TODO Individually hide video/char per column
+
 class Stream {
     /**
      * Create a stream
@@ -27,7 +29,7 @@ class Stream {
         this._chat = null;
         this._resizeChat = false;
         this._doAPICalls = doAPICalls;
-        this._apiTimeout = null;  // In case setTimeout needs to be cleared
+        this._apiTimeout = null;  // Stores setTimeout reference for API calls
     }
 
     /**
@@ -131,7 +133,7 @@ class Stream {
             case "mixer":
                 return "https://mixer.com/embed/player/" + this._username;
             case "twitch":
-                return "https://player.twitch.tv/?channel=" + this._username;
+                return `https://player.twitch.tv/?channel=${this._username}&parent=${document.location.hostname}`;
         }
     }
 
@@ -143,7 +145,7 @@ class Stream {
             case "mixer":
                 return "https://mixer.com/embed/chat/" + this._username;
             case "twitch":
-                return "https://www.twitch.tv/embed/" + this._username + "/chat?darkpopout";
+                return `https://www.twitch.tv/embed/${this._username}/chat?parent=${document.location.hostname}&darkpopout`;
         }
     }
 
@@ -153,6 +155,7 @@ class Stream {
     _genEmbedVideo() {
         let iframe = htmlToElement("<iframe class='player' allowfullscreen='true' frameborder='0' scrolling='no'></iframe>");
 
+        // TODO Set initial height to closest 16:9 aspect ratio? https://stackoverflow.com/questions/1186414/whats-the-algorithm-to-calculate-aspect-ratio
         switch (this._platform) {
             case "mixer":
                 iframe.src = this.getVideoURL();
