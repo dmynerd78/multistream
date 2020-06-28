@@ -37,7 +37,7 @@ function genColumns(streams, settings, streamColumns, startCol=null) {
 
         let stream = new Stream(user, plat, noAPI);
 
-        let div = stream.getUserDOM(
+        let div = stream.getDOM(
             settings.indexOf("novideo") == -1,
             settings.indexOf("nobanner") == -1,
             settings.indexOf("nochat") == -1
@@ -166,6 +166,23 @@ function removeDOMStream(username, streamColumns) {
             streamColumns.splice(i, 1);
             return;
         }
+    }
+}
+
+function compactedMode() {
+    document.getElementById("stream-chats").style.flexWrap = "wrap";
+
+    for(let i=0; i<streamColumns.length; i++) {
+        streamColumns[i].compactedMode();
+    }
+}
+
+// TODO Docstring
+function expandedMode() {
+    document.getElementById("stream-chats").style.removeProperty("wrap");
+
+    for (let i = 0; i < streamColumns.length; i++) {
+        streamColumns[i].expandedMode();
     }
 }
 

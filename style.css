@@ -1,4 +1,4 @@
-head, body {
+html, body {
     margin: 0;
     padding: 0;
     overflow: hidden;
@@ -207,20 +207,31 @@ input.error::placeholder {
     flex-direction: column;
 }
 
-.col .chatWrapper {
+.row {
+    display: flex;
+    flex: 1;
+    flex-direction: row;
+}
+
+.stream .chatWrapper {
     display: flex;
     position: relative;
     width: 100%;
     height: 100%;
 }
 
-.col .chatWrapper::after {
+.stream .chatWrapper::after {
     content: " ";
     background-color: #252525;
     position: absolute;
     height: 5px;
     width: 100%;
     cursor: n-resize;
+}
+
+.stream .playerWrapper {
+    display: flex;
+    flex-grow: 1;
 }
 
 iframe {

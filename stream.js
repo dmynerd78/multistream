@@ -83,15 +83,15 @@ class Stream {
 
     // TODO Docstring
     // Only generates once. If you want to update DOM call other methods
-    getUserDOM(doVideo, doBanner, doChat) {
+    getDOM(doVideo, doBanner, doChat) {
         if (this._dom != null) {
             return this._dom;
         }
 
-        this._dom = htmlToElement("<div class='col'></div>");
-        if (doVideo) { this._dom.appendChild(this.getPlayer()); }
+        this._dom = htmlToElement("<div class='stream col'></div>");
+        if (doVideo)  { this._dom.appendChild(this.getPlayer()); }
         if (doBanner) { this._dom.appendChild(this.getBanner()); }
-        if (doChat) { this._dom.appendChild(this.getChat()); }
+        if (doChat)   { this._dom.appendChild(this.getChat()); }
 
         return this._dom;
     }
@@ -104,7 +104,7 @@ class Stream {
     getPlayer() {
         if(this._player === null) {
             this._player = this._genEmbedVideo();
-            this._resizeChat = true;
+            // this._resizeChat = true; // TODO uncomment for prod
         }
         return this._player;
     }
@@ -168,15 +168,23 @@ class Stream {
     }
 
     // TODO Docstring
-    removeVideo() {
-        // TODO stub function
-        throw "stub function";
+    compactedMode() {
+        this._dom.classList.remove("col");
+        this._dom.classList.add("row");
+
+        if(this._banner !== null && this._chat !== null) {
+            this._banner.before(this._chat);
+        }
     }
 
     // TODO Docstring
-    removeChat() {
-        // TODO stub function
-        throw "stub function";
+    expandedMode() {
+        this._dom.classList.remove("row");
+        this._dom.classList.add("col");
+
+        if (this._banner !== null && this._chat !== null) {
+            this._banner.after(this._chat);
+        }
     }
 
     /**
