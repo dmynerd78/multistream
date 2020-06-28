@@ -207,6 +207,25 @@ input.error::placeholder {
     flex-direction: column;
 }
 
+.col .streamWrapper {
+    display: grid;
+    grid-template-areas:
+        "player"
+        "banner"
+        "chat";
+}
+
+.row .streamWrapper {
+    display: grid;
+    grid-template-areas:
+        "player chat"
+        "banner banner";
+}
+
+.playerWrapper { grid-area: player; }
+.banner { grid-area: banner; }
+.chatWrapper { grid-area: chat; }
+
 .row {
     display: flex;
     flex: 1;
@@ -220,14 +239,29 @@ input.error::placeholder {
     height: 100%;
 }
 
-.stream .chatWrapper::after {
+.col .chatWrapper::after {
     content: " ";
-    background-color: #252525;
+    /* TODO: Change back to gray */
+    /* background-color: #252525; */
+    background-color: orangered;
     position: absolute;
     height: 5px;
     width: 100%;
-    cursor: n-resize;
+    cursor: ns-resize;
 }
+
+/* TODO: Change to be on left side of chat */
+.row .chatWrapper::after {
+    content: " ";
+    /* TODO: Change back to gray */
+    /* background-color: #252525; */
+    background-color: orangered;
+    position: absolute;
+    width: 5px;
+    height: 100%;
+    cursor: ew-resize;
+}
+
 
 .stream .playerWrapper {
     display: flex;

@@ -161,7 +161,7 @@ function removeDOMStream(username, streamColumns) {
             currCol.stopAPICalls();
 
             let removeSearch = currCol.getPlatform().substr(0, 1) + ":" + currCol.getUsername();
-            removeDOMElement(document.querySelector(`#stream-chats .col:nth-child(${i+1})`));
+            removeDOMElement(currCol.getDOM());
             urlParser.removeStream(removeSearch);
             streamColumns.splice(i, 1);
             return;
