@@ -9,8 +9,6 @@ function genColumns(streams, settings, streamColumns, startCol=null) {
     document.querySelector("#stream-gen").classList.add("hidden");
     document.querySelector("#stream-chats").classList.remove("hidden");
 
-    console.log(startCol);
-
     for (var index in streams) {
         let channel = streams[index].split(":");
 
@@ -39,10 +37,11 @@ function genColumns(streams, settings, streamColumns, startCol=null) {
 
         let stream = new Stream(user, plat, noAPI);
 
-        let div = htmlToElement("<div class='col'></div>");
-        if (settings.indexOf("novideo") == -1) { div.appendChild(stream.getPlayer()); }
-        if (settings.indexOf("nobanner") == -1) { div.appendChild(stream.getBanner()); }
-        if (settings.indexOf("nochat") == -1) { div.appendChild(stream.getChat()); }
+        let div = stream.getUserDOM(
+            settings.indexOf("novideo") == -1,
+            settings.indexOf("nobanner") == -1,
+            settings.indexOf("nochat") == -1
+        );
 
         streamColumns.push(stream);
         if (startCol === null || startCol.nextSibling === null) {

@@ -24,6 +24,7 @@ class Stream {
         this._platform = platform;
 
         // Initially null to prevent unneccesary background from iframe JS
+        this._dom = null;
         this._player = null;
         this._banner = null;
         this._chat = null;
@@ -80,6 +81,21 @@ class Stream {
         return this._platform;
     }
 
+    // TODO Docstring
+    // Only generates once. If you want to update DOM call other methods
+    getUserDOM(doVideo, doBanner, doChat) {
+        if (this._dom != null) {
+            return this._dom;
+        }
+
+        this._dom = htmlToElement("<div class='col'></div>");
+        if (doVideo) { this._dom.appendChild(this.getPlayer()); }
+        if (doBanner) { this._dom.appendChild(this.getBanner()); }
+        if (doChat) { this._dom.appendChild(this.getChat()); }
+
+        return this._dom;
+    }
+
     /**
      * Get the DOM element containing the video player
      * NOTE: If the player and chat are being added, the video player
@@ -105,6 +121,8 @@ class Stream {
 
     /**
      * Get the DOM element containing the chat iframe
+     * NOTE: If adding the video player as well, you
+     * *MUST* generate that first as it initializes resizing
      */
     getChat() {
         if(this._chat === null) {
@@ -149,13 +167,25 @@ class Stream {
         }
     }
 
+    // TODO Docstring
+    removeVideo() {
+        // TODO stub function
+        throw "stub function";
+    }
+
+    // TODO Docstring
+    removeChat() {
+        // TODO stub function
+        throw "stub function";
+    }
+
     /**
      * Create iframe for video player. Auto mutes the stream
      */
     _genEmbedVideo() {
+        let divWrapper = htmlToElement("<div class='playerWrapper'></div>");
         let iframe = htmlToElement("<iframe class='player' allowfullscreen='true' frameborder='0' scrolling='no'></iframe>");
 
-        // TODO Set initial height to closest 16:9 aspect ratio? https://stackoverflow.com/questions/1186414/whats-the-algorithm-to-calculate-aspect-ratio
         switch (this._platform) {
             case "mixer":
                 iframe.src = this.getVideoURL();
@@ -168,7 +198,8 @@ class Stream {
                 break;
         }
 
-        return iframe;
+        divWrapper.appendChild(iframe);
+        return divWrapper;
     }
 
     /**
