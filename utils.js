@@ -35,13 +35,15 @@ function genColumns(streams, settings, streamColumns, startCol=null) {
             continue;
         }
 
-        let stream = new Stream(user, plat, noAPI);
+        let options = 0;
+        if (settings.indexOf("novideo") == -1) { options |= ENABLE_VIDEO; }
+        if (settings.indexOf("nobanner") == -1) { options |= ENABLE_BANNER; }
+        if (settings.indexOf("nochat") == -1) { options |= ENABLE_CHAT; }
+        console.log(options.toString(2));
 
-        let div = stream.getDOM(
-            settings.indexOf("novideo") == -1,
-            settings.indexOf("nobanner") == -1,
-            settings.indexOf("nochat") == -1
-        );
+        let stream = new Stream(user, plat, options, noAPI);
+
+        let div = stream.getDOM();
 
         streamColumns.push(stream);
         if (startCol === null || startCol.nextSibling === null) {

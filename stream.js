@@ -1,13 +1,18 @@
 // TODO Individually hide video/char per column
 
+const ENABLE_VIDEO = 0b100;
+const ENABLE_BANNER = 0b010;
+const ENABLE_CHAT = 0b001;
+
 class Stream {
     /**
      * Create a stream
      * @param {string} username - Username of the channel.
      * @param {string} platform - Platform user is on ("twitch" or "mixer").
+     * @param {int} enabled - binary number. Bitwise or ENABLE_{VIDEO,BANNER,CHAT} together
      * @param {boolean} doAPICalls - periodically call APIs for viewer count, live status, etc.
      */
-    constructor(username, platform, doAPICalls = true) {
+    constructor(username, platform, enabled, doAPICalls = true) {
         if(username == "") { throw "Username empty"; }
 
         // username = username.trim().toLowerCase();
@@ -31,6 +36,11 @@ class Stream {
         this._resizeChat = false;
         this._doAPICalls = doAPICalls;
         this._apiTimeout = null;  // Stores setTimeout reference for API calls
+
+        // bits represent options in following order: video,banner,chat
+        this._doVideo =  ((enabled >> 2) & 0b1) === 1;
+        this._doBanner = ((enabled >> 1) & 0b1) === 1;
+        this._doChat =    (enabled & 0b1) === 1;
     }
 
     /**
@@ -83,15 +93,15 @@ class Stream {
 
     // TODO Docstring
     // Only generates once. If you want to update DOM call other methods
-    getDOM(doVideo, doBanner, doChat) {
+    getDOM() {
         if (this._dom != null) {
             return this._dom;
         }
 
         this._dom = htmlToElement("<div class='stream col'></div>");
-        if (doVideo)  { this._dom.appendChild(this.getPlayer()); }
-        if (doBanner) { this._dom.appendChild(this.getBanner()); }
-        if (doChat)   { this._dom.appendChild(this.getChat()); }
+        if (this._doVideo)  { this._dom.appendChild(this.getPlayer()); }
+        if (this._doBanner) { this._dom.appendChild(this.getBanner()); }
+        if (this._doChat)   { this._dom.appendChild(this.getChat()); }
 
         return this._dom;
     }
@@ -104,7 +114,7 @@ class Stream {
     getPlayer() {
         if(this._player === null) {
             this._player = this._genEmbedVideo();
-            // this._resizeChat = true; // TODO uncomment for prod
+            this._resizeChat = true;
         }
         return this._player;
     }
