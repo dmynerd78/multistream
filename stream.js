@@ -31,7 +31,6 @@ class Stream {
         this._resizeChat = false;
         this._doAPICalls = doAPICalls;
         this._apiTimeout = null;  // Stores setTimeout reference for API calls
-        this._isExpanded = true; // false when in compact mode
     }
 
     /**
@@ -89,13 +88,11 @@ class Stream {
             return this._dom;
         }
 
-        let streamWrapper = htmlToElement("<div class='streamWrapper'></div>");
-        if (doVideo)  { streamWrapper.appendChild(this.getPlayer()); }
-        if (doBanner) { streamWrapper.appendChild(this.getBanner()); }
-        if (doChat)   { streamWrapper.appendChild(this.getChat()); }
-
         this._dom = htmlToElement("<div class='stream col'></div>");
-        this._dom.appendChild(streamWrapper);
+        if (doVideo)  { this._dom.appendChild(this.getPlayer()); }
+        if (doBanner) { this._dom.appendChild(this.getBanner()); }
+        if (doChat)   { this._dom.appendChild(this.getChat()); }
+
         return this._dom;
     }
 
@@ -107,7 +104,7 @@ class Stream {
     getPlayer() {
         if(this._player === null) {
             this._player = this._genEmbedVideo();
-            this._resizeChat = true;
+            // this._resizeChat = true; // TODO uncomment for prod
         }
         return this._player;
     }
@@ -175,12 +172,8 @@ class Stream {
         this._dom.classList.remove("col");
         this._dom.classList.add("row");
 
-        this._isExpanded = false;
-
-        // Banner align-self: flex-start
         if(this._banner !== null && this._chat !== null) {
             this._banner.before(this._chat);
-            this._chat.style.height = "100%";
         }
     }
 
@@ -189,11 +182,8 @@ class Stream {
         this._dom.classList.remove("row");
         this._dom.classList.add("col");
 
-        this._isExpanded = true;
-
-        if(this._banner !== null && this._chat !== null) {
+        if (this._banner !== null && this._chat !== null) {
             this._banner.after(this._chat);
-            this._chat.style.height = "75%";
         }
     }
 
@@ -305,7 +295,6 @@ class Stream {
         }
 
         // Resize chat on mousedown of chatWrapper
-        // TODO Support compact mode (use this._isExpanded)
         divWrapper.addEventListener("mousedown", function (e) {
             if (e.offsetY < 5) {
                 let resizeBind = resize.bind(null, divWrapper);
