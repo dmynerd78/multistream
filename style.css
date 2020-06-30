@@ -150,6 +150,10 @@ input.error::placeholder {
     padding-left: 15px;
     line-height: 30px;
     text-shadow: 2px 2px 4px #000000;
+
+    text-overflow: ellipsis;
+    width: calc(35%);
+    overflow: hidden;
 }
 
 .banner .rightWrapper {
@@ -162,6 +166,10 @@ input.error::placeholder {
 .rightWrapper .icon {
     padding-right: 10px;
     cursor: pointer;
+}
+
+.controls {
+    all: inherit;
 }
 
 .liveIcon {

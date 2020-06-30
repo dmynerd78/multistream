@@ -52,6 +52,7 @@ function genColumns(streams, settings, streamColumns, startCol=null) {
         }
     }
 
+    resizeBanners();
     return streamColumns;
 }
 
@@ -139,7 +140,7 @@ var prevChatY;
  * @param {*} element divWrapper which had it's MouseEvent fired
  * @param {*} event MouseEvent that was fired
  */
-function resize(element, event) {
+function resizeChats(element, event) {
     const dx = window.prevChatY - event.y;
     window.prevChatY = event.y;
 
@@ -147,6 +148,19 @@ function resize(element, event) {
     desiredHeight = clamp(desiredHeight, 300, window.innerHeight - 250);
     window.chatHeightSheet.innerHTML = `.col .chatWrapper { height: ${desiredHeight}px !important; }`;
 }
+
+/**
+ * Periodically checks to see if banner content needs to be hidden
+ * to fit within a single line. Couldn't figure out how to get this
+ * working with CSS sadly. And resize event only works on window (not ideal)
+ */
+function resizeBanners() {
+    for(let i=0; i<streamColumns.length; i++) {
+        streamColumns[i].checkBannerSize();
+    }
+}
+
+window.addEventListener("resize", resizeBanners, false);
 
 /**
  * Remove a stream from #stream-chats.
@@ -222,6 +236,7 @@ class URLParams {
 
         this._streams.push(`${platform}:${username}`);
         this.updateSearch();
+        resizeBanners();
         return true;
     }
 
@@ -237,6 +252,8 @@ class URLParams {
             if(this._streams[i].toLowerCase() == stream) {
                 this._streams.splice(i, 1);
                 this.updateSearch();
+                resizeBanners();
+
                 return true;
             }
         }

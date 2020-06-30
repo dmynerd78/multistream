@@ -155,7 +155,6 @@ class Stream {
     _genEmbedVideo() {
         let iframe = htmlToElement("<iframe class='player' allowfullscreen='true' frameborder='0' scrolling='no'></iframe>");
 
-        // TODO Set initial height to closest 16:9 aspect ratio? https://stackoverflow.com/questions/1186414/whats-the-algorithm-to-calculate-aspect-ratio
         switch (this._platform) {
             case "mixer":
                 iframe.src = this.getVideoURL();
@@ -228,13 +227,16 @@ class Stream {
         bannerTop.appendChild(updateCols);
         banner.appendChild(bannerTop);
 
+        let controls = htmlToElement("<div class='controls'></div>");
         if (this._doAPICalls) {
             updateCols.appendChild(viewerCount);
-            updateCols.appendChild(isLiveIcon);
+            controls.appendChild(isLiveIcon);
         }
-        updateCols.appendChild(addStreamIcon);
-        updateCols.appendChild(removeStreamIcon);
-        updateCols.appendChild(htmlToElement(`<a href='${this.getChannelURL()}' target='_blank' rel='noopener' class='channelButton noselect'>Open</a>`));
+
+        controls.appendChild(addStreamIcon);
+        controls.appendChild(removeStreamIcon);
+        controls.appendChild(htmlToElement(`<a href='${this.getChannelURL()}' target='_blank' rel='noopener' class='channelButton noselect'>Open</a>`));
+        updateCols.appendChild(controls);
         bannerBot.appendChild(streamInput);
         banner.appendChild(bannerBot);
 
@@ -258,7 +260,7 @@ class Stream {
         // Resize chat on mousedown of chatWrapper
         divWrapper.addEventListener("mousedown", function (e) {
             if (e.offsetY < 5) {
-                let resizeBind = resize.bind(null, divWrapper);
+                let resizeBind = resizeChats.bind(null, divWrapper);
 
                 window.prevChatY = e.y;
                 resizeSheet.innerHTML = "iframe { pointer-events: none; } * { cursor: n-resize; }";
@@ -329,7 +331,8 @@ class Stream {
                         liveIndicator.classList.remove("live");
                     } else {
                         let stream = data.data[0];
-                        viewers.textContent = ` Uptime: ${Stream.get_uptime(stream.started_at)} | ${stream.viewer_count.toLocaleString()} viewers`;
+                        // viewers.textContent = `${stream.viewer_count.toLocaleString()} viewers | ${Stream.get_uptime(stream.started_at)}`;
+                        viewers.textContent = `${stream.viewer_count.toLocaleString()} viewers`;
                         liveIndicator.classList.add("live");
                     }
                 };
@@ -341,6 +344,21 @@ class Stream {
 
         // Setup next run interval
         this._apiTimeout = setTimeout(() => { this._runAPICalls(viewers, liveIndicator); }, 60 * 1000);
+    }
+
+    /**
+     * Check to see if viewerCount span needs to be hidden
+     * (ensures banner's .top element doesn't take up two lines)
+     */
+    checkBannerSize() {
+        if(this._banner === null || !this._doAPICalls) { return; }
+
+        let top = this._banner.querySelector(".top");
+        if ((top.querySelector(".channelName").clientWidth + top.querySelector(".controls").clientWidth) > top.clientWidth - 230) {
+            top.querySelector(".rightWrapper .viewerCount").style.display = "none";
+        } else {
+            top.querySelector(".rightWrapper .viewerCount").style.removeProperty("display");
+        }
     }
 
     /**
