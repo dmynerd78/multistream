@@ -39,7 +39,6 @@ function genColumns(streams, settings, streamColumns, startCol=null) {
         if (settings.indexOf("novideo") == -1) { options |= ENABLE_VIDEO; }
         if (settings.indexOf("nobanner") == -1) { options |= ENABLE_BANNER; }
         if (settings.indexOf("nochat") == -1) { options |= ENABLE_CHAT; }
-        console.log(options.toString(2));
 
         let stream = new Stream(user, plat, options, noAPI);
 

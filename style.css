@@ -200,6 +200,10 @@ input.error::placeholder {
     user-select: none;
 }
 
+.streamWrapper {
+    all: inherit;
+}
+
 .col {
     display: flex;
     flex: 1;
@@ -211,6 +215,7 @@ input.error::placeholder {
     display: flex;
     flex: 1;
     flex-direction: row;
+    min-width: 50%;
 }
 
 .stream .chatWrapper {
@@ -220,13 +225,25 @@ input.error::placeholder {
     height: 100%;
 }
 
-.stream .chatWrapper::after {
+.col .chatWrapper::after {
     content: " ";
-    background-color: #252525;
+    /* background-color: #252525; */
+    background: orangered;
     position: absolute;
     height: 5px;
     width: 100%;
-    cursor: n-resize;
+    cursor: ns-resize;
+}
+
+.row .chatWrapper::after {
+    content: " ";
+    /* background-color: #252525; */
+    background: orangered;
+    position: absolute;
+    height: 100%;
+    width: 5px;
+    cursor: ew-resize;
+    left: 0;
 }
 
 .stream .playerWrapper {

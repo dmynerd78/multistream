@@ -98,11 +98,15 @@ class Stream {
             return this._dom;
         }
 
-        this._dom = htmlToElement("<div class='stream col'></div>");
-        if (this._doVideo)  { this._dom.appendChild(this.getPlayer()); }
-        if (this._doBanner) { this._dom.appendChild(this.getBanner()); }
-        if (this._doChat)   { this._dom.appendChild(this.getChat()); }
+        // let wrapper = htmlToElement("<div class='streamWrapper'></div>");
 
+        let wrapper = htmlToElement("<div class='stream col'></div>");
+        if (this._doVideo)  { wrapper.appendChild(this._getPlayer()); }
+        if (this._doBanner) { wrapper.appendChild(this._getBanner()); }
+        if (this._doChat)   { wrapper.appendChild(this._getChat()); }
+
+        // this._dom.appendChild(wrapper);
+        this._dom = wrapper;
         return this._dom;
     }
 
@@ -111,7 +115,7 @@ class Stream {
      * NOTE: If the player and chat are being added, the video player
      * *MUST* be added first as it initializes resizing
      */
-    getPlayer() {
+    _getPlayer() {
         if(this._player === null) {
             this._player = this._genEmbedVideo();
             this._resizeChat = true;
@@ -122,7 +126,7 @@ class Stream {
     /**
      * Get the DOM element containing the banner
      */
-    getBanner() {
+    _getBanner() {
         if(this._banner === null) {
             this._banner = this._genBanner();
         }
@@ -134,7 +138,7 @@ class Stream {
      * NOTE: If adding the video player as well, you
      * *MUST* generate that first as it initializes resizing
      */
-    getChat() {
+    _getChat() {
         if(this._chat === null) {
             this._chat = this._genEmbedChat();
         }
@@ -178,24 +182,43 @@ class Stream {
     }
 
     // TODO Docstring
+    // TODO Call when each column <= some_width
     compactedMode() {
         this._dom.classList.remove("col");
         this._dom.classList.add("row");
 
-        if(this._banner !== null && this._chat !== null) {
-            this._banner.before(this._chat);
+        if(this._doBanner && this._doChat) {
+            this._chat.after(this._banner);
         }
+
+        if(this._doChat) {
+            this._chat.style.removeProperty("height");
+            this._chat.style.width = "40%"; // TODO Change to variable
+
+            this._banner.style.display = "none";
+        }
+
     }
 
     // TODO Docstring
+    // Call when each ______________
     expandedMode() {
         this._dom.classList.remove("row");
         this._dom.classList.add("col");
 
-        if (this._banner !== null && this._chat !== null) {
-            this._banner.after(this._chat);
+        if(this._doBanner && this._doChat) {
+            this._chat.before(this._banner);
+        }
+
+        if(this._doChat) {
+            this._chat.style.removeProperty("width");
+            this._chat.style.height = "75%"; // TODO Change to variable
+
+            this._banner.style.removeProperty("display");
         }
     }
+
+    // TODO enable/disable video, banner, and chat methods
 
     /**
      * Create iframe for video player. Auto mutes the stream

@@ -58,7 +58,7 @@
             <br>
             <br>
             <!-- TODO Question mark cursor + click = descrition that slides out? -->
-            <label class="noselect" title="Hide small banner which separates strem chat and video. Gives a way to add more streams dynamically and (if query statistics is enabled) shows live viewer count">No Banner <input type="checkbox" id="noBanner"></label><br>
+            <label class="noselect" title="Hide small banner which separates strem chat and video. It can show viewer count if 'Don't Query Statistics' is not checked. Also allows for on-the-fly removal and addition of streams">No Banner <input type="checkbox" id="noBanner"></label><br>
             <label class="noselect" title="Do not query site APIs for things like viewer count channel status">Don't Query Statistics <input type="checkbox" id="noAPICalls"></label><br>
         </div>
         <button id="submit" onclick="readInputStreams();">Submit</button>
@@ -83,10 +83,13 @@
         if(urlParser.isValid()) {
             try {
                 streamColumns = genColumns(urlParser.getStreams(), urlParser.getSettings(), streamColumns);
+
+                // compactedMode();
             } catch(e) {
                 console.error(e);
                 alert(e);
             }
+
 
         } else {
             // Set focus to first input
