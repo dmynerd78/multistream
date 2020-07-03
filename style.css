@@ -33,6 +33,7 @@ a, a:visited {
     bottom: 0;
     right: 0;
     padding: 10px;
+    text-align: right;
 }
 
 #stream-gen {

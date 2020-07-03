@@ -216,8 +216,8 @@ class Stream {
         streamInput.appendChild(streamInputAdd);
         streamInput.appendChild(streamInputCancel);
         addStreamIcon.onclick = function() {
-            if (Math.floor(window.innerWidth / window.streamColumns.length) < 300) {
-                alert("Max number of columns reached for this specific window size. To add more, increase window size.");
+            if (Math.floor(window.innerWidth / window.streamColumns.length) < 350) {
+                alert("There is no more space for more streams\nIf you want to add more, increase the size of the window");
                 return;
             }
             bannerBot.classList.remove("hidden");
@@ -356,8 +356,10 @@ class Stream {
         let top = this._banner.querySelector(".top");
         if ((top.querySelector(".channelName").clientWidth + top.querySelector(".controls").clientWidth) > top.clientWidth - 230) {
             top.querySelector(".rightWrapper .viewerCount").style.display = "none";
+            return true;
         } else {
             top.querySelector(".rightWrapper .viewerCount").style.removeProperty("display");
+            return false;
         }
     }
 

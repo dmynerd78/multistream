@@ -57,12 +57,15 @@
             </span>
             <br>
             <br>
-            <!-- TODO Question mark cursor + click = descrition that slides out? -->
-            <label class="noselect" title="Hide small banner which separates strem chat and video. Gives a way to add more streams dynamically and (if query statistics is enabled) shows live viewer count">No Banner <input type="checkbox" id="noBanner"></label><br>
-            <label class="noselect" title="Do not query site APIs for things like viewer count channel status">Don't Query Statistics <input type="checkbox" id="noAPICalls"></label><br>
+            <label class="noselect" title="Hide small banner which separates strem chat and video. Gives a way to add more streams dynamically and shows live viewer count (if that's enabled)">Hide Banner <input type="checkbox" id="noBanner"></label><br>
+            <label class="noselect" title="Don't query site APIs for things like viewer count and live status">Hide viewer count <input type="checkbox" id="noAPICalls"></label><br>
         </div>
         <button id="submit" onclick="readInputStreams();">Submit</button>
-        <span id="credit">Made by <a href="https://twitter.com/dmynerd78" target="_blank" rel="noopener">@dmynerd78</a></span>
+        <span id="credit">
+            Hosted by <a href="https://github.com/dmynerd78/multistream" target="_blank" rel="noopener">Github</a>
+            <br>
+            Made by <a href="https://twitter.com/dmynerd78" target="_blank" rel="noopener">@dmynerd78</a>
+        </span>
     </div>
 
     <div id="stream-chats" class="hidden"></div>
