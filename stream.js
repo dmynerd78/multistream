@@ -1,27 +1,17 @@
 // TODO Individually hide video/char per column
+// TODO Embed new twitch js library to make managing video/chat easier?
 
 class Stream {
     /**
      * Create a stream
      * @param {string} username - Username of the channel.
-     * @param {string} platform - Platform user is on ("twitch" or "mixer").
      * @param {boolean} doAPICalls - periodically call APIs for viewer count, live status, etc.
      */
-    constructor(username, platform, doAPICalls = true) {
+    constructor(username, doAPICalls = true) {
         if(username == "") { throw "Username empty"; }
 
-        // username = username.trim().toLowerCase();
-        platform = platform.trim().toLowerCase();
-        if (platform != "mixer" && platform != "twitch" &&
-            platform != "m" && platform != "t") {
-                throw "Invalid platform";
-        }
-
-        if (platform == "m") { platform = "mixer"; }
-        if (platform == "t") { platform = "twitch"; }
-
         this._username = username.trim();
-        this._platform = platform;
+        this._platform = "twitch";
 
         // Initially null to prevent unneccesary background from iframe JS
         this._player = null;
@@ -118,8 +108,6 @@ class Stream {
      */
     getChannelURL() {
         switch (this._platform) {
-            case "mixer":
-                return "https://mixer.com/" + this._username;
             case "twitch":
                 return "https://twitch.tv/" + this._username;
         }
@@ -130,8 +118,6 @@ class Stream {
      */
     getVideoURL() {
         switch (this._platform) {
-            case "mixer":
-                return "https://mixer.com/embed/player/" + this._username;
             case "twitch":
                 return `https://player.twitch.tv/?channel=${this._username}&parent=${document.location.hostname}`;
         }
@@ -142,8 +128,6 @@ class Stream {
      */
     getChatURL() {
         switch (this._platform) {
-            case "mixer":
-                return "https://mixer.com/embed/chat/" + this._username;
             case "twitch":
                 return `https://www.twitch.tv/embed/${this._username}/chat?parent=${document.location.hostname}&darkpopout`;
         }
@@ -156,13 +140,8 @@ class Stream {
         let iframe = htmlToElement("<iframe class='player' allowfullscreen='true' frameborder='0' scrolling='no'></iframe>");
 
         switch (this._platform) {
-            case "mixer":
-                iframe.src = this.getVideoURL();
-                iframe.disableCostream = "true";
-                iframe.muted = "true";
-                iframe.mixplay = "false";
-                break;
             case "twitch":
+                // TODO Set volume to 1/100 instead
                 iframe.src = this.getVideoURL() + "&muted=true";
                 break;
         }
@@ -187,10 +166,6 @@ class Stream {
 
         let streamInput = htmlToElement(`<div class="inner-input-group rightWrapper">
                 <input type="text" placeholder="Username" required>
-                <select>
-                    <option value="twitch">Twitch</option>
-                    <option value="mixer">Mixer</option>
-                </select>
             </div>`);
         let viewerCount = htmlToElement("<span class='viewerCount'></span>");
         let isLiveIcon = htmlToElement("<div class='liveIcon'></div>");
@@ -204,11 +179,10 @@ class Stream {
             if(username.length == 0) {
                 return;
             }
-            let platform = streamInput.getElementsByTagName("select")[0].value;
-            let stream = [`${platform.substr(0, 1)}:${username}`];
+            let stream = [username];
 
             window.streamColumns = genColumns(stream, window.urlParser.getSettings(), window.streamColumns, streamInputAdd.closest(".col"));
-            window.urlParser.addStream(platform, username);
+            window.urlParser.addStream(username);
             bannerBot.classList.add("hidden");
             streamInput.getElementsByTagName("input")[0].value = "";
         };
@@ -306,20 +280,6 @@ class Stream {
 
         let request = new XMLHttpRequest();
         switch(this._platform) {
-            case "mixer":
-                request.open("GET", "https://mixer.com/api/v1/channels/" + this._username, true);
-                request.onload = function () {
-                    let data = JSON.parse(this.response);
-                    if(data.online == false) {
-                        viewers.textContent = "Not Live";
-                        liveIndicator.classList.remove("live");
-                    } else {
-                        viewers.textContent = `${data.viewersCurrent.toLocaleString()} viewers`;
-                        liveIndicator.classList.add("live");
-                    }
-                };
-                break;
-
             case "twitch":
                 request.open("GET", "https://api.twitch.tv/helix/streams?user_login=" + this._username, true);
 

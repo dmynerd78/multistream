@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta name="description" content="Dmynerd78's multistream site" />
-    <meta name="keywords" content="dmynerd78,multi,multistream,twitch,mixer,streaming" />
+    <meta name="keywords" content="dmynerd78,multi,multistream,twitch,streaming" />
     <meta name="author" content="Dmynerd78">
     <meta property="og:title" content="Dmynerd78's multistream site" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://dmynerd78.me/multi" />
-    <meta property="og:description" content="View multiple Twitch and Mixer streams within a single page" />
+    <meta property="og:description" content="View multiple Twitch streams within a single page" />
     <meta property="og:locale" content="en_US" />
 
     <title>Multi Chat</title>
@@ -28,20 +28,12 @@
         <div class="wrapper">
             <div class="input-group">
                 <input type="text" placeholder="Username" required>
-                <select>
-                    <option value="twitch">Twitch</option>
-                    <option value="mixer">Mixer</option>
-                </select>
                 <button onclick="addStream();">Add Stream</button>
                 <button class="hide">Remove</button>
             </div>
 
             <div class="input-group">
                 <input type="text" placeholder="Username" required>
-                <select>
-                    <option value="twitch">Twitch</option>
-                    <option value="mixer">Mixer</option>
-                </select>
                 <button onclick="addStream();">Add Stream</button>
                 <button onclick="removeDOMElement(this.parentElement);">Remove</button>
             </div>
