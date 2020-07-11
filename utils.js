@@ -9,8 +9,6 @@ function genColumns(streams, settings, streamColumns, startCol=null) {
     document.querySelector("#stream-gen").classList.add("hidden");
     document.querySelector("#stream-chats").classList.remove("hidden");
 
-    console.log(startCol);
-
     for (var index in streams) {
         let user = streams[index];
 
@@ -204,20 +202,21 @@ class URLParams {
         }
 
         let urlUpdated = false;
+        this._streams = this._streams.filter(stream => !stream.startsWith("m:"));
+
         for(let i in this._streams) {
             let curr = this._streams[i];
-            if(curr.startsWith("m:")) {
-                console.log(`Found mixer stream! Removing ${this._streams[i]}`);
-                this._streams.pop(i);
-                urlUpdated = true;
-            } else if(curr.startsWith("t:")) {
+            if(curr.startsWith("t:")) {
                 this._streams[i] = this._streams[i].substr(2);
                 urlUpdated = true;
             }
         }
 
-        if(urlUpdated) {
-            let newPath = '?' + this._streams.join("+") + "&" + this._settings.join("+");
+        let newPath = "?" + this._streams.join("+");
+        if(this._settings.length != 0) {
+            newPath += "&" + this._settings.join("+");
+        }
+        if(newPath != window.location.search) {
             history.pushState(null, '', newPath);
         }
 
