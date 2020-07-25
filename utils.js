@@ -9,26 +9,22 @@ function genColumns(streams, settings, streamColumns, startCol=null) {
     document.querySelector("#stream-gen").classList.add("hidden");
     document.querySelector("#stream-chats").classList.remove("hidden");
 
-    console.log(startCol);
-
     for (var index in streams) {
-        let channel = streams[index].split(":");
+        let user = streams[index];
 
         // Ignore blank channel
-        if (channel[0] == "") {
+        if (user == "") {
             continue;
         }
 
         noAPI = settings.indexOf("noapi") == -1;
-        let plat = channel[0];
-        let user = channel[1];
 
         // Skip user if already exists
         let skipUser = false;
         for(let i=0; i< streamColumns.length; i++) {
             let s = streamColumns[i];
 
-            if(s.getUsername() == user && s.getPlatform().substr(0, 1) == plat) {
+            if(s.getUsername() == user) {
                 skipUser = true;
                 break;
             }
@@ -37,7 +33,7 @@ function genColumns(streams, settings, streamColumns, startCol=null) {
             continue;
         }
 
-        let stream = new Stream(user, plat, noAPI);
+        let stream = new Stream(user, noAPI);
 
         let div = htmlToElement("<div class='col'></div>");
         if (settings.indexOf("novideo") == -1) { div.appendChild(stream.getPlayer()); }
@@ -84,22 +80,17 @@ function readInputStreams() {
     let invalidInput = false;
     streams.forEach(function(inputGroup) {
         username = inputGroup.children[0].value;
-        platform = inputGroup.children[1].value;
 
         inputGroup.children[0].classList.remove("error");
         inputGroup.children[1].classList.remove("error");
 
-        if(platform == "") {
-            inputGroup.children[1].classList.add("error");
-            invalidInput = true;
-        }
         if(username == "") {
             inputGroup.children[0].classList.add("error");
             invalidInput = true;
         }
         if(invalidInput) { return; }
 
-        dataStreams.push(platform[0] + ":" + username);
+        dataStreams.push(username);
     });
 
     // Prevent URL being updated if not all inputs are being used
@@ -175,7 +166,7 @@ function removeDOMStream(username, streamColumns) {
         if (currCol.getUsername().toLowerCase() == username.toLowerCase()) {
             currCol.stopAPICalls();
 
-            let removeSearch = currCol.getPlatform().substr(0, 1) + ":" + currCol.getUsername();
+            let removeSearch = currCol.getUsername();
             removeDOMElement(document.querySelector(`#stream-chats .col:nth-child(${i+1})`));
             urlParser.removeStream(removeSearch);
             streamColumns.splice(i, 1);
@@ -210,6 +201,25 @@ class URLParams {
             this._settings = search[1].split("+");
         }
 
+        let urlUpdated = false;
+        this._streams = this._streams.filter(stream => !stream.startsWith("m:"));
+
+        for(let i in this._streams) {
+            let curr = this._streams[i];
+            if(curr.startsWith("t:")) {
+                this._streams[i] = this._streams[i].substr(2);
+                urlUpdated = true;
+            }
+        }
+
+        let newPath = "?" + this._streams.join("+");
+        if(this._settings.length != 0) {
+            newPath += "&" + this._settings.join("+");
+        }
+        if(newPath != window.location.search) {
+            history.pushState(null, '', newPath);
+        }
+
         console.log("Parsed arguments:");
         console.log({"streams": this._streams, "settings": this._settings});
     }
@@ -220,13 +230,12 @@ class URLParams {
 
     /**
      * Add a stream to the URL. Returns true if added false it's a duplicate
-     * @param {string} platform either "mixer" or "twitch"
      * @param {string} username username of the player to add
      */
-    addStream(platform, username) {
-        platform = platform.slice(0, 1).toLowerCase();
-        let checkString = platform + ":" + username.toLowerCase();
-        for(let index in this._streams) {
+    addStream(username) {
+        let index;
+        let checkString = username.toLowerCase();
+        for(index in this._streams) {
             let currStream = this._streams[index].toLowerCase();
 
             if (currStream == checkString) {
@@ -234,7 +243,8 @@ class URLParams {
             }
         }
 
-        this._streams.push(`${platform}:${username}`);
+        // this._streams.push(username);
+        this._streams.splice(index, 0, username);
         this.updateSearch();
         resizeBanners();
         return true;
@@ -242,9 +252,7 @@ class URLParams {
 
     /**
      * Remove a stream from the URL. Returns true if removed. False if not found in URL
-     * @param {string} stream a string in the format "<platform_prefix>:<username>"
-     * where platform_prefix is "m" for Mixer and "t" for Twitch
-     * where username is the username of the channel
+     * @param {string} stream a channel's username
      */
     removeStream(stream) {
         stream = stream.toLowerCase();
