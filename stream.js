@@ -158,11 +158,11 @@ class Stream {
         let banner = htmlToElement(`<div class='banner' style='background: var(--${this._platform}-color);'></div>`);
         let bannerTop = htmlToElement("<div class='top'></div>");
         let bannerBot = htmlToElement("<div class='bot hidden'></div>");
-        let channelName = htmlToElement(`<span class='channelName'>${this._username}</span>`);
+        let channelName = htmlToElement(`<span class='channelName'>${this.getUsername()}</span>`);
         let updateCols = htmlToElement("<div class='rightWrapper'></div>");
         let addStreamIcon = htmlToElement("<a title='Add another stream' class='addStream icon'>&#x2795</a>");
         let removeStreamIcon = htmlToElement("<a title='Remove this stream' class='removeStream icon'>&#x2796;</a>");
-        removeStreamIcon.onclick = () => removeDOMStream(this._username, window.streamColumns);
+        removeStreamIcon.onclick = () => removeDOMStream(this.getUsername(), window.streamColumns);
 
         let streamInput = htmlToElement(`<div class="inner-input-group rightWrapper">
                 <input type="text" placeholder="Username" required>
