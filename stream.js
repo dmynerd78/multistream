@@ -107,9 +107,9 @@ class Stream {
      * Ger url to a channel
      */
     getChannelURL() {
-        switch (this._platform) {
+        switch (this.getPlatform()) {
             case "twitch":
-                return "https://twitch.tv/" + this._username;
+                return "https://twitch.tv/" + this.getUsername();
         }
     }
 
@@ -119,7 +119,7 @@ class Stream {
     getVideoURL() {
         switch (this._platform) {
             case "twitch":
-                return `https://player.twitch.tv/?channel=${this._username}&parent=${document.location.hostname}`;
+                return `https://player.twitch.tv/?channel=${this.getUsername()}&parent=${document.location.hostname}`;
         }
     }
 
@@ -129,7 +129,7 @@ class Stream {
     getChatURL() {
         switch (this._platform) {
             case "twitch":
-                return `https://www.twitch.tv/embed/${this._username}/chat?parent=${document.location.hostname}&darkpopout`;
+                return `https://www.twitch.tv/embed/${this.getUsername()}/chat?parent=${document.location.hostname}&darkpopout`;
         }
     }
 
@@ -155,28 +155,29 @@ class Stream {
      */
     _genBanner() {
         // TODO Option to hide video/chat per column
-        let banner = htmlToElement(`<div class='banner' style='background: var(--${this._platform}-color);'></div>`);
+        let banner = htmlToElement(`<div class='banner' style='background: var(--${this.getPlatform()}-color);'></div>`);
         let bannerTop = htmlToElement("<div class='top'></div>");
         let bannerBot = htmlToElement("<div class='bot hidden'></div>");
         let channelName = htmlToElement(`<span class='channelName'>${this.getUsername()}</span>`);
         let updateCols = htmlToElement("<div class='rightWrapper'></div>");
         let addStreamIcon = htmlToElement("<a title='Add another stream' class='addStream icon'>&#x2795</a>");
         let removeStreamIcon = htmlToElement("<a title='Remove this stream' class='removeStream icon'>&#x2796;</a>");
-        removeStreamIcon.onclick = () => removeDOMStream(this.getUsername(), window.streamColumns);
+        removeStreamIcon.addEventListener("click", () => removeDOMStream(this.getUsername(), window.streamColumns));
 
         let streamInput = htmlToElement(`<div class="inner-input-group rightWrapper">
-                <input type="text" placeholder="Username" required>
-            </div>`);
+                                            <input type="text" placeholder="Username" required>
+                                        </div>`);
         let viewerCount = htmlToElement("<span class='viewerCount'></span>");
         let isLiveIcon = htmlToElement("<div class='liveIcon'></div>");
 
         let streamInputCancel = htmlToElement("<button>Cancel</button>");
-        streamInputCancel.onclick = () => bannerBot.classList.add("hidden");
+        streamInputCancel.addEventListener("click", () => bannerBot.classList.add("hidden"));
 
         let streamInputAdd = htmlToElement("<button>Add</button>");
-        streamInputAdd.onclick = function () {
+        streamInputAdd.addEventListener("click", () => {
+            // TODO Move to function
             let username = streamInput.getElementsByTagName("input")[0].value.trim();
-            if(username.length == 0) {
+            if (username.length == 0) {
                 return;
             }
             let stream = [username];
@@ -184,32 +185,30 @@ class Stream {
             window.streamColumns = genColumns(stream, window.urlParser.getSettings(), window.streamColumns, streamInputAdd.closest(".col"));
             window.urlParser.addStream(username);
             bannerBot.classList.add("hidden");
-            streamInput.getElementsByTagName("input")[0].value = "";
-        };
+            streamInput.querySelector("input").value = ""; // TODO querySelector()?
+        });
 
-        streamInput.appendChild(streamInputAdd);
-        streamInput.appendChild(streamInputCancel);
-        addStreamIcon.onclick = function() {
+        streamInput.append(streamInputAdd, streamInputCancel);
+        addStreamIcon.addEventListener("click", () => {
             if (Math.floor(window.innerWidth / window.streamColumns.length) < 350) {
                 alert("There is no more space for more streams\nIf you want to add more, increase the size of the window");
                 return;
             }
             bannerBot.classList.remove("hidden");
-        };
+            bannerBot.querySelector("input").focus();
+        });
 
-        bannerTop.appendChild(channelName);
-        bannerTop.appendChild(updateCols);
+        bannerTop.append(channelName, updateCols);
         banner.appendChild(bannerTop);
 
         let controls = htmlToElement("<div class='controls'></div>");
         if (this._doAPICalls) {
-            updateCols.appendChild(viewerCount);
-            controls.appendChild(isLiveIcon);
+            updateCols.append(viewerCount, isLiveIcon);
         }
 
-        controls.appendChild(addStreamIcon);
-        controls.appendChild(removeStreamIcon);
-        controls.appendChild(htmlToElement(`<a href='${this.getChannelURL()}' target='_blank' rel='noopener' class='channelButton noselect'>Open</a>`));
+        let userButton = htmlToElement(`<a href='${this.getChannelURL()}' target='_blank' rel='noopener' class='channelButton noselect'>Open</a>`);
+
+        controls.append(addStreamIcon, removeStreamIcon, userButton);
         updateCols.appendChild(controls);
         bannerBot.appendChild(streamInput);
         banner.appendChild(bannerBot);
@@ -276,23 +275,34 @@ class Stream {
      * @param {dom} liveIndicator div that add/remove live class from
      */
     _runAPICalls(viewers, liveIndicator) {
-        console.info(`Polling ${this._username} (${this._platform})...`);
+        console.info(`Polling ${this.getUsername()} (${this.getPlatform()})...`);
 
         let request = new XMLHttpRequest();
-        switch(this._platform) {
+        switch(this.getPlatform()) {
             case "twitch":
-                request.open("GET", "https://api.twitch.tv/helix/streams?user_login=" + this._username, true);
+                request.open("GET", "https://api.twitch.tv/helix/streams?user_login=" + this.getUsername(), true);
 
                 request.onload = function () {
+                    if (this.status == 429) {
+                        console.warn("Too many API calls! Removing internval (HTTP Status 429)");
+                        stopAPICalls();
+                        return;
+                    }
+
+                    console.log("REQUEST INFO", this);
                     let data = JSON.parse(this.response);
 
                     if(data.data.length == 0) {
                         viewers.textContent = "Not Live";
                         liveIndicator.classList.remove("live");
+                        viewers.title = "";
+                        liveIndicator.title = "";
                     } else {
                         let stream = data.data[0];
                         // viewers.textContent = `${stream.viewer_count.toLocaleString()} viewers | ${Stream.get_uptime(stream.started_at)}`;
                         viewers.textContent = `${stream.viewer_count.toLocaleString()} viewers`;
+                        viewers.title = `Live for ${Stream.get_uptime(stream.started_at)}`;
+                        liveIndicator.title = `Live for ${Stream.get_uptime(stream.started_at)}`;
                         liveIndicator.classList.add("live");
                     }
                 };

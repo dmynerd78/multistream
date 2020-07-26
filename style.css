@@ -80,7 +80,8 @@ input[type="checkbox"] {
     font-size: 125%;
 }
 
-#stream-gen .wrapper .input-group:first-child > :nth-child(3) {
+/* First row has it's remove remove hidden */
+#stream-gen .wrapper .input-group:first-child > :nth-child(2) {
     border-radius: 0 5px 5px 0;
 }
 
