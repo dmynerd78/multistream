@@ -164,9 +164,23 @@ class Stream {
         let removeStreamIcon = htmlToElement("<a title='Remove this stream' class='removeStream icon'>&#x2796;</a>");
         removeStreamIcon.addEventListener("click", () => removeDOMStream(this.getUsername(), window.streamColumns));
 
-        let streamInput = htmlToElement(`<div class="inner-input-group rightWrapper">
-                                            <input type="text" placeholder="Username" required>
-                                        </div>`);
+        let streamInputWrapper = htmlToElement(`<div class="inner-input-group rightWrapper"></div>`);
+        let streamInput = htmlToElement(`<input type="text" placeholder="Username" required>`);
+        streamInput.addEventListener("keydown", (e) => {
+            switch(e.key) {
+                case "Enter": {
+                    console.log(streamInput.value);
+                    // TODO Add stream
+                    break;
+                }
+
+                case "Escape": {
+                    // TODO Clear & hide
+                    break;
+                }
+            }
+        });
+
         let viewerCount = htmlToElement("<span class='viewerCount'></span>");
         let isLiveIcon = htmlToElement("<div class='liveIcon'></div>");
 
@@ -175,25 +189,27 @@ class Stream {
 
         let streamInputAdd = htmlToElement("<button>Add</button>");
         streamInputAdd.addEventListener("click", () => {
-            // TODO Move to function
-            let username = streamInput.getElementsByTagName("input")[0].value.trim();
+            // TODO Move to function. Takes streamInput (or maybe .bot so you can hide/use querySelector?)
+            let username = streamInputWrapper.querySelector("input").value.trim();
             if (username.length == 0) {
                 return;
             }
             let stream = [username];
 
+            // FIXME streamColumns and urlParser have incorrect order after stream is added
             window.streamColumns = genColumns(stream, window.urlParser.getSettings(), window.streamColumns, streamInputAdd.closest(".col"));
             window.urlParser.addStream(username);
             bannerBot.classList.add("hidden");
-            streamInput.querySelector("input").value = ""; // TODO querySelector()?
+            streamInputWrapper.querySelector("input").value = "";
         });
 
-        streamInput.append(streamInputAdd, streamInputCancel);
+        streamInputWrapper.append(streamInput, streamInputAdd, streamInputCancel);
         addStreamIcon.addEventListener("click", () => {
             if (Math.floor(window.innerWidth / window.streamColumns.length) < 350) {
                 alert("There is no more space for more streams\nIf you want to add more, increase the size of the window");
                 return;
             }
+
             bannerBot.classList.remove("hidden");
             bannerBot.querySelector("input").focus();
         });
@@ -210,7 +226,7 @@ class Stream {
 
         controls.append(addStreamIcon, removeStreamIcon, userButton);
         updateCols.appendChild(controls);
-        bannerBot.appendChild(streamInput);
+        bannerBot.appendChild(streamInputWrapper);
         banner.appendChild(bannerBot);
 
 
@@ -284,12 +300,11 @@ class Stream {
 
                 request.onload = function () {
                     if (this.status == 429) {
-                        console.warn("Too many API calls! Removing internval (HTTP Status 429)");
+                        console.warn("Too many API calls! Removing interval (HTTP Status 429)");
                         stopAPICalls();
                         return;
                     }
 
-                    console.log("REQUEST INFO", this);
                     let data = JSON.parse(this.response);
 
                     if(data.data.length == 0) {
@@ -299,7 +314,6 @@ class Stream {
                         liveIndicator.title = "";
                     } else {
                         let stream = data.data[0];
-                        // viewers.textContent = `${stream.viewer_count.toLocaleString()} viewers | ${Stream.get_uptime(stream.started_at)}`;
                         viewers.textContent = `${stream.viewer_count.toLocaleString()} viewers`;
                         viewers.title = `Live for ${Stream.get_uptime(stream.started_at)}`;
                         liveIndicator.title = `Live for ${Stream.get_uptime(stream.started_at)}`;
