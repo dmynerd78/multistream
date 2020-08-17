@@ -35,7 +35,7 @@ class Stream {
      * Key will expire in a month or two and will need to be replaced
      * Get new one with POST https://id.twitch.tv/oauth2/token?grant_type=client_credentials&client_id={}&client_secret={}
      */
-    static get TWITCH_OAUTH_ID() { return "jotxtukprcgp4zwmosrd2tlpullwx8"; }
+    static get TWITCH_OAUTH_ID() { return "37ulc0tjj2hvz9hvjq2qpsf60mdzta"; }
 
     /**
      * Create a hh:ss display (or dd:hh:ss if >24 hours) for a stream's uptime
