@@ -4,16 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <meta name="description" content="Dmynerd78's multistream site" />
+    <meta name="description" content="View multiple Twitch streams within a single page" />
     <meta name="keywords" content="dmynerd78,multi,multistream,twitch,streaming" />
     <meta name="author" content="Dmynerd78">
-    <meta property="og:title" content="Dmynerd78's multistream site" />
+    <meta property="og:title" content="Dmynerd's Twitch multistream tool" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://dmynerd78.me/multi" />
     <meta property="og:description" content="View multiple Twitch streams within a single page" />
     <meta property="og:locale" content="en_US" />
 
-    <title>Multi Chat</title>
+    <title>Dmynerd's Twitch Multistream Tool</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -28,13 +28,13 @@
         <div class="wrapper">
             <div class="input-group">
                 <input type="text" placeholder="Username" required>
-                <button onclick="addStream();">Add Stream</button>
+                <button onclick="addStreamGenInput();">Add Stream</button>
                 <button class="hide">Remove</button>
             </div>
 
             <div class="input-group">
                 <input type="text" placeholder="Username" required>
-                <button onclick="addStream();">Add Stream</button>
+                <button onclick="addStreamGenInput();">Add Stream</button>
                 <button onclick="removeDOMElement(this.parentElement);">Remove</button>
             </div>
         </div>
@@ -49,8 +49,8 @@
             </span>
             <br>
             <br>
-            <label class="noselect" title="Hide small banner which separates strem chat and video. Gives a way to add more streams dynamically and shows live viewer count (if that's enabled)">Hide Banner <input type="checkbox" id="noBanner"></label><br>
-            <label class="noselect" title="Don't query site APIs for things like viewer count and live status">Hide viewer count <input type="checkbox" id="noAPICalls"></label><br>
+            <label class="noselect" title="Hide small banner which separates strem chat and video. Gives a way to add more streams dynamically and shows channel status (if enabled)">Hide banner <input type="checkbox" id="noBanner"></label><br>
+            <label class="noselect" title="If the person is online, it shows the viewer count as well as uptime (if it fits)">Hide channel status <input type="checkbox" id="noAPICalls"></label><br>
         </div>
         <button id="submit" onclick="readInputStreams();">Submit</button>
         <span id="credit">
@@ -60,25 +60,25 @@
         </span>
     </div>
 
-    <div id="stream-chats" class="hidden"></div>
+    <div id="stream-embeds" class="hidden"></div>
 
     <script src="utils.js"></script>
+    <script src="streammanager.js"></script>
     <script src="stream.js"></script>
     <script>
         // Deep copy the initial row which has add and remove row buttons
         const STREAM_ROW = document.querySelector("#stream-gen .wrapper .input-group:nth-child(2)").cloneNode(true);
 
-        // TODO Check if browser is IE?
-
         // Example search: ?dmynerd78+CallMeCyber&novideo+nobanner
         // This isn't very useful considering neither of us stream much
-        var urlParser = new URLParams(window.location.search);
 
         // Load streams from URL
-        var streamColumns = [];
-        if(urlParser.isValid()) {
+        var streamManager = new StreamManager(window.location.search,
+                                              document.querySelector("#stream-gen"),
+                                              document.querySelector("#stream-embeds"));
+        if(streamManager.isValid()) {
             try {
-                streamColumns = genColumns(urlParser.getStreams(), urlParser.getSettings(), streamColumns);
+                streamManager.genAllColumns();
             } catch(e) {
                 console.error(e);
                 alert(e);
@@ -86,7 +86,9 @@
 
         } else {
             // Set focus to first input
-            window.onload = () => document.querySelector("#stream-gen .wrapper .input-group :first-child").focus();
+            window.addEventListener("load", () => {
+                document.querySelector("#stream-gen .wrapper .input-group:first-child input").focus();
+            });
         }
 
         // Used for disabling interactivity with iframes when resizing chat
@@ -96,7 +98,7 @@
         var chatHeightSheet = document.createElement("style");
         document.body.appendChild(chatHeightSheet);
 
-        // Hide query statistics if banner is disabled
+        // Stream Gen - Hide query statistics if banner is disabled
         document.getElementById("noBanner").addEventListener("change", (e) => {
             let node = document.getElementById("noAPICalls").parentElement;
             if(e.srcElement.checked) {

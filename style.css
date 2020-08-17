@@ -80,7 +80,8 @@ input[type="checkbox"] {
     font-size: 125%;
 }
 
-#stream-gen .wrapper .input-group:first-child > :nth-child(3) {
+/* First row has it's remove button hidden */
+#stream-gen .wrapper .input-group:first-child > :nth-child(2) {
     border-radius: 0 5px 5px 0;
 }
 
@@ -132,7 +133,7 @@ input.error::placeholder {
     justify-content: flex-start;
 }
 
-#stream-chats {
+#stream-embeds {
     display: flex;
     height: 100%;
 }
@@ -160,6 +161,7 @@ input.error::placeholder {
 .banner .rightWrapper {
     height: 30px;
     float: right;
+    user-select: none;
     display: inline-flex;
     flex-direction: row;
 }
@@ -189,6 +191,7 @@ input.error::placeholder {
 }
 
 .banner .viewerCount {
+    cursor: default;
     padding: 0 10px;
     line-height: 30px;
     text-shadow: 2px 2px 4px #000000;

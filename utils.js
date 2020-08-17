@@ -1,62 +1,8 @@
 /**
- * Add all streams to DOM
- * @param {Array} streams list of all streams with in format "platform:channelName"
- * @param {Array} settings list of options to skip: "novideo", "nochat", "nobanner", "noapi"
- * @param {Array} streamColumns list of all streams added to DOM
- * @param {DOM} startCol if specified, add column *after* startCol. Else add to end of all columns
- */
-function genColumns(streams, settings, streamColumns, startCol=null) {
-    document.querySelector("#stream-gen").classList.add("hidden");
-    document.querySelector("#stream-chats").classList.remove("hidden");
-
-    for (var index in streams) {
-        let user = streams[index];
-
-        // Ignore blank channel
-        if (user == "") {
-            continue;
-        }
-
-        noAPI = settings.indexOf("noapi") == -1;
-
-        // Skip user if already exists
-        let skipUser = false;
-        for(let i=0; i< streamColumns.length; i++) {
-            let s = streamColumns[i];
-
-            if(s.getUsername() == user) {
-                skipUser = true;
-                break;
-            }
-        }
-        if(skipUser) {
-            continue;
-        }
-
-        let stream = new Stream(user, noAPI);
-
-        let div = htmlToElement("<div class='col'></div>");
-        if (settings.indexOf("novideo") == -1) { div.appendChild(stream.getPlayer()); }
-        if (settings.indexOf("nobanner") == -1) { div.appendChild(stream.getBanner()); }
-        if (settings.indexOf("nochat") == -1) { div.appendChild(stream.getChat()); }
-
-        streamColumns.push(stream);
-        if (startCol === null || startCol.nextSibling === null) {
-            document.querySelector("#stream-chats").appendChild(div);
-        } else {
-            document.getElementById("stream-chats").insertBefore(div, startCol.nextSibling);
-        }
-    }
-
-    resizeBanners();
-    return streamColumns;
-}
-
-/**
  * Utility to add a new input row to #stream-gen
  */
-function addStream() {
-    // Deep Clone used to prevent same-reference conflicts
+function addStreamGenInput() {
+    // Use deep copy clone to prevent same-reference conflicts
     document.querySelector("#stream-gen .wrapper").appendChild(STREAM_ROW.cloneNode(true));
 }
 
@@ -67,6 +13,8 @@ function addStream() {
 function removeDOMElement(node) {
     var parent = node.parentElement;
     parent.removeChild(node);
+
+    return true;
 }
 
 /**
@@ -111,7 +59,31 @@ function readInputStreams() {
     if(dataOptions.length > 0) {
         search += "&" + dataOptions.join("+");
     }
+
+    // Update search which then forces index's JS to rerun
     window.location.search = search;
+}
+
+/**
+ * Create a hh:ss display (or dd:hh:ss if >24 hours) for a stream's uptime
+ * @param {*} startTime the time a stream started. Must be parsable by JS's Date object
+ */
+function get_uptime(startTime) {
+    let sec = Math.abs(new Date(startTime).getTime() - Date.now());
+    let mins = Math.floor(sec / 60000);
+    let hrs = Math.floor(mins / 60);
+    let days = Math.floor(hrs / 24);
+    mins = mins % 60;
+    hrs = hrs % 24;
+
+    days = days.toString().padStart(2, "0");
+    hrs = hrs.toString().padStart(2, "0");
+    mins = mins.toString().padStart(2, "0");
+    if (days == 0) {
+        return `${hrs}:${mins}`;
+    } else {
+        return `${days}:${hrs}:${mins}`;
+    }
 }
 
 /**
@@ -141,39 +113,18 @@ function resizeChats(element, event) {
 }
 
 /**
- * Periodically checks to see if banner content needs to be hidden
+ * Whenever window is rezied, check if banner content needs to be hidden
  * to fit within a single line. Couldn't figure out how to get this
- * working with CSS sadly. And resize event only works on window (not ideal)
+ * working with CSS sadly. Resize event only works on window (not ideal)
  */
 function resizeBanners() {
+    let streamColumns = window.streamManager.getStreamList();
+
     for(let i=0; i<streamColumns.length; i++) {
         streamColumns[i].checkBannerSize();
     }
 }
-
 window.addEventListener("resize", resizeBanners, false);
-
-/**
- * Remove a stream from #stream-chats.
- * If it removes the last stream, it'll auto show the generate new multi
- * by removing the search component of window.location
- * @param {string} username the name of the streamer to remove
- */
-function removeDOMStream(username, streamColumns) {
-    for(i = 0; i < streamColumns.length; i++) {
-        let currCol = streamColumns[i];
-
-        if (currCol.getUsername().toLowerCase() == username.toLowerCase()) {
-            currCol.stopAPICalls();
-
-            let removeSearch = currCol.getUsername();
-            removeDOMElement(document.querySelector(`#stream-chats .col:nth-child(${i+1})`));
-            urlParser.removeStream(removeSearch);
-            streamColumns.splice(i, 1);
-            return;
-        }
-    }
-}
 
 /**
  * Create DOM element given HTML string representation
@@ -186,111 +137,4 @@ function htmlToElement(html) {
     html = html.trim(); // Never return a text node of whitespace as the result
     template.innerHTML = html;
     return template.content.firstChild;
-}
-
-class URLParams {
-    constructor(search) {
-        if(search.startsWith("?")) {
-            search = search.substr(1);
-        }
-
-        search = search.split("&");
-        this._streams = search[0].split("+");
-        this._settings = [];
-        if (search.length > 1) {
-            this._settings = search[1].split("+");
-        }
-
-        let urlUpdated = false;
-        this._streams = this._streams.filter(stream => !stream.startsWith("m:"));
-
-        for(let i in this._streams) {
-            let curr = this._streams[i];
-            if(curr.startsWith("t:")) {
-                this._streams[i] = this._streams[i].substr(2);
-                urlUpdated = true;
-            }
-        }
-
-        let newPath = "?" + this._streams.join("+");
-        if(this._settings.length != 0) {
-            newPath += "&" + this._settings.join("+");
-        }
-        if(newPath != window.location.search) {
-            history.pushState(null, '', newPath);
-        }
-
-        console.log("Parsed arguments:");
-        console.log({"streams": this._streams, "settings": this._settings});
-    }
-
-    isValid() {
-        return this._streams.length != 0 && this._streams[0] != "";
-    }
-
-    /**
-     * Add a stream to the URL. Returns true if added false it's a duplicate
-     * @param {string} username username of the player to add
-     */
-    addStream(username) {
-        let index;
-        let checkString = username.toLowerCase();
-        for(index in this._streams) {
-            let currStream = this._streams[index].toLowerCase();
-
-            if (currStream == checkString) {
-                return false;
-            }
-        }
-
-        // this._streams.push(username);
-        this._streams.splice(index, 0, username);
-        this.updateSearch();
-        resizeBanners();
-        return true;
-    }
-
-    /**
-     * Remove a stream from the URL. Returns true if removed. False if not found in URL
-     * @param {string} stream a channel's username
-     */
-    removeStream(stream) {
-        stream = stream.toLowerCase();
-        for(i=0; i<this._streams.length; i++) {
-            if(this._streams[i].toLowerCase() == stream) {
-                this._streams.splice(i, 1);
-                this.updateSearch();
-                resizeBanners();
-
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    updateSearch() {
-        if(this._streams.length == 0) {
-            document.querySelector("#stream-gen").classList.remove("hidden");
-            document.querySelector("#stream-chats").classList.add("hidden");
-            history.pushState(null, '', window.location.pathname);
-            return;
-        }
-
-        let search = this._streams.join("+");
-        if(this._settings.length != 0) {
-            search += "&" + this._settings.join("+");
-        }
-        let newPath = window.location.pathname + '?' + search;
-        history.pushState(null, '', newPath);
-        // history.replaceState(null, '', newPath);
-    }
-
-    getStreams() {
-        return this._streams.slice();
-    }
-
-    getSettings() {
-        return this._settings.slice();
-    }
 }
