@@ -3,11 +3,12 @@ class StreamManager {
 
     // Format: ?stream1+stream2+stream3&option1+option2
     // Search streamer is on Twitch platform
-    constructor(columnsRoot, search) {
+    constructor(search, columnsGen, columnsRoot) {
         if (search.startsWith("?")) {
             search = search.substr(1);
         }
 
+        this._columnsGen = columnsGen;
         this._columnsRoot = columnsRoot;
         search = search.split("&");
         this._settings = [];
@@ -45,7 +46,7 @@ class StreamManager {
 
             // Found stream to place it after
             if(currUsername == afterUsername) {
-                this._streams.splice(i, 0, newStream);
+                this._streams.splice(i+1, 0, newStream);
                 let newCol = newStream.getColumn(this._settings);
 
                 if(currStream.getColumn().nextSibling == null) {
@@ -64,23 +65,48 @@ class StreamManager {
         return false;
     }
 
-    removeStream(username, service) {
-        // TODO Show stream-gen if empty
+    removeStream(username) {
+        username = username.toLowerCase();
+
+        this._streams = this._streams.filter((s) => {
+            return !(s.getUsername().toLowerCase() == username &&
+                     s.stopAPICalls() && removeDOMElement(s.getColumn()));
+        });
+        this.updateWindowSearch();
     }
 
     updateWindowSearch() {
-        // TODO Implement
+        if (this._streams.length == 0) {
+            this._columnsGen.classList.remove("hidden");
+            this._columnsRoot.classList.add("hidden");
+            history.pushState(null, '', window.location.pathname);
+            return;
+        }
+
+        let search = this._streams.map((el) => el.getUsername()).join("+");
+        if (this._settings.length != 0) {
+            search += "&" + this._settings.join("+");
+        }
+
+        if(window.location.search != search) {
+            let newPath = window.location.pathname + '?' + search;
+            history.pushState(null, '', newPath);
+        }
     }
 
     getStreamList() {
         return this._streams;
     }
 
-    // Should only be called only once
     genAllColumns() {
         for (let index in this._streams) {
             let currStream = this._streams[index];
             this._columnsRoot.appendChild(currStream.getColumn(this._settings));
         }
+
+        this._columnsGen.classList.add("hidden");
+        this._columnsRoot.classList.remove("hidden");
+
+        resizeBanners();
     }
 }

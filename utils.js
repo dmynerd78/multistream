@@ -13,6 +13,8 @@ function addStreamGenInput() {
 function removeDOMElement(node) {
     var parent = node.parentElement;
     parent.removeChild(node);
+
+    return true;
 }
 
 /**
@@ -100,30 +102,7 @@ function resizeBanners() {
         streamColumns[i].checkBannerSize();
     }
 }
-
 window.addEventListener("resize", resizeBanners, false);
-
-/**
- * Remove a stream from #stream-chats.
- * If it removes the last stream, it'll auto show the generate new multi
- * by removing the search component of window.location
- * @param {string} username the name of the streamer to remove
- */
-function removeDOMStream(username, streamColumns) {
-    for(i = 0; i < streamColumns.length; i++) {
-        let currCol = streamColumns[i];
-
-        if (currCol.getUsername().toLowerCase() == username.toLowerCase()) {
-            currCol.stopAPICalls();
-
-            let removeSearch = currCol.getUsername();
-            removeDOMElement(document.querySelector(`#stream-chats .col:nth-child(${i+1})`));
-            urlParser.removeStream(removeSearch);
-            streamColumns.splice(i, 1);
-            return;
-        }
-    }
-}
 
 /**
  * Create DOM element given HTML string representation

@@ -1,5 +1,4 @@
 // TODO Individually hide video/char per column
-// TODO Embed new twitch js library to make managing video/chat easier?
 
 class Stream {
     /**
@@ -179,12 +178,11 @@ class Stream {
         let updateCols = htmlToElement("<div class='rightWrapper'></div>");
         let addStreamIcon = htmlToElement("<a title='Add another stream' class='addStream icon'>&#x2795</a>");
         let removeStreamIcon = htmlToElement("<a title='Remove this stream' class='removeStream icon'>&#x2796;</a>");
-        // TODO Update
-        // removeStreamIcon.addEventListener("click", () => removeDOMStream(this.getUsername(), window.streamColumns));
+        removeStreamIcon.addEventListener("click", () =>  this._streamManager.removeStream(this.getUsername()));
 
         let streamInputWrapper = htmlToElement(`<div class="inner-input-group rightWrapper"></div>`);
         let streamInput = htmlToElement(`<input type="text" placeholder="Username" required>`);
-        streamInput.addEventListener("keydown", (e) => { // TODO Update
+        streamInput.addEventListener("keydown", (e) => {
             let inputStream = streamInput.value.trim();
             switch(e.key) {
                 case "Enter": {
@@ -220,8 +218,8 @@ class Stream {
 
         streamInputWrapper.append(streamInput, streamInputAdd, streamInputCancel);
         addStreamIcon.addEventListener("click", () => {
-            if (Math.floor(window.innerWidth / this._streamManager.getStreamList()) < 350) {
-                alert("There is no more space for more streams\nIf you want to add more, increase the size of the window");
+            if (Math.floor(window.innerWidth / this._streamManager.getStreamList().length) < 350) {
+                alert("There is no more space for additional streams\nIf you want to add more, increase the size of the window");
                 return;
             }
 
@@ -256,7 +254,6 @@ class Stream {
      * Creates iframe element which contains the chat
      */
     _genEmbedChat() {
-        // TODO Make sure resizing works
         let divWrapper = htmlToElement("<div class='chatWrapper noselect'></div>");
         if(this._resizeChat) {
             divWrapper.style.height = "70%";
@@ -307,6 +304,7 @@ class Stream {
      * @param {dom} liveIndicator div that add/remove live class from
      */
     _runAPICalls(viewers, liveIndicator) {
+        // TODO Move to StreamManager (use one API call instead of n-many calls)
         console.info(`Polling ${this.getUsername()} (${this.getPlatform()})...`);
 
         let request = new XMLHttpRequest();
@@ -369,5 +367,6 @@ class Stream {
      */
     stopAPICalls() {
         clearTimeout(this._apiTimeout);
+        return true;
     }
 }

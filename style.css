@@ -161,6 +161,7 @@ input.error::placeholder {
 .banner .rightWrapper {
     height: 30px;
     float: right;
+    user-select: none;
     display: inline-flex;
     flex-direction: row;
 }
@@ -190,6 +191,7 @@ input.error::placeholder {
 }
 
 .banner .viewerCount {
+    cursor: default;
     padding: 0 10px;
     line-height: 30px;
     text-shadow: 2px 2px 4px #000000;
