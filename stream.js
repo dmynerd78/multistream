@@ -4,16 +4,19 @@
 class Stream {
     /**
      * Create a stream
-     * @param {string} username - Username of the channel.
+     * @param {Object} streamManager - StreamManager class this will be apart of
+     * @param {string} username - Username of the channel
      * @param {boolean} doAPICalls - periodically call APIs for viewer count, live status, etc.
      */
-    constructor(username, doAPICalls = true) {
+    constructor(streamManager, username, doAPICalls = true) {
         if(username == "") { throw "Username empty"; }
 
+        this._streamManager = streamManager;
         this._username = username.trim();
         this._platform = "twitch";
 
-        // Initially null to prevent unneccesary background from iframe JS
+        // Initially null to prevent unneccesary background iframe JS
+        this._column = null;
         this._player = null;
         this._banner = null;
         this._chat = null;
@@ -149,6 +152,20 @@ class Stream {
         return iframe;
     }
 
+    getColumn(settings) {
+        if(this._column) {
+            return this._column;
+        }
+
+        let div = htmlToElement("<div class='col'></div>");
+        if (settings.indexOf("novideo") == -1) { div.appendChild(this.getPlayer()); }
+        if (settings.indexOf("nobanner") == -1) { div.appendChild(this.getBanner()); }
+        if (settings.indexOf("nochat") == -1) { div.appendChild(this.getChat()); }
+
+        this._column = div;
+        return div;
+    }
+
     /**
      * Generates a streamer "banner" which contains link to
      * streamer page along with dom elements for _runAPICalls()
@@ -162,20 +179,25 @@ class Stream {
         let updateCols = htmlToElement("<div class='rightWrapper'></div>");
         let addStreamIcon = htmlToElement("<a title='Add another stream' class='addStream icon'>&#x2795</a>");
         let removeStreamIcon = htmlToElement("<a title='Remove this stream' class='removeStream icon'>&#x2796;</a>");
-        removeStreamIcon.addEventListener("click", () => removeDOMStream(this.getUsername(), window.streamColumns));
+        // TODO Update
+        // removeStreamIcon.addEventListener("click", () => removeDOMStream(this.getUsername(), window.streamColumns));
 
         let streamInputWrapper = htmlToElement(`<div class="inner-input-group rightWrapper"></div>`);
         let streamInput = htmlToElement(`<input type="text" placeholder="Username" required>`);
-        streamInput.addEventListener("keydown", (e) => {
+        streamInput.addEventListener("keydown", (e) => { // TODO Update
+            let inputStream = streamInput.value.trim();
             switch(e.key) {
                 case "Enter": {
-                    console.log(streamInput.value);
-                    // TODO Add stream
+                    this._streamManager.addStream(inputStream, this.getUsername());
+
+                    bannerBot.classList.add("hidden");
+                    streamInput.value = "";
                     break;
                 }
 
                 case "Escape": {
-                    // TODO Clear & hide
+                    bannerBot.classList.add("hidden");
+                    streamInput.value = "";
                     break;
                 }
             }
@@ -189,23 +211,16 @@ class Stream {
 
         let streamInputAdd = htmlToElement("<button>Add</button>");
         streamInputAdd.addEventListener("click", () => {
-            // TODO Move to function. Takes streamInput (or maybe .bot so you can hide/use querySelector?)
-            let username = streamInputWrapper.querySelector("input").value.trim();
-            if (username.length == 0) {
-                return;
-            }
-            let stream = [username];
+            let inputStream = streamInput.value.trim();
+            this._streamManager.addStream(inputStream, this.getUsername());
 
-            // FIXME streamColumns and urlParser have incorrect order after stream is added
-            window.streamColumns = genColumns(stream, window.urlParser.getSettings(), window.streamColumns, streamInputAdd.closest(".col"));
-            window.urlParser.addStream(username);
             bannerBot.classList.add("hidden");
-            streamInputWrapper.querySelector("input").value = "";
+            streamInput.value = "";
         });
 
         streamInputWrapper.append(streamInput, streamInputAdd, streamInputCancel);
         addStreamIcon.addEventListener("click", () => {
-            if (Math.floor(window.innerWidth / window.streamColumns.length) < 350) {
+            if (Math.floor(window.innerWidth / this._streamManager.getStreamList()) < 350) {
                 alert("There is no more space for more streams\nIf you want to add more, increase the size of the window");
                 return;
             }
@@ -241,6 +256,7 @@ class Stream {
      * Creates iframe element which contains the chat
      */
     _genEmbedChat() {
+        // TODO Make sure resizing works
         let divWrapper = htmlToElement("<div class='chatWrapper noselect'></div>");
         if(this._resizeChat) {
             divWrapper.style.height = "70%";

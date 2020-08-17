@@ -80,7 +80,7 @@ input[type="checkbox"] {
     font-size: 125%;
 }
 
-/* First row has it's remove remove hidden */
+/* First row has it's remove button hidden */
 #stream-gen .wrapper .input-group:first-child > :nth-child(2) {
     border-radius: 0 5px 5px 0;
 }
@@ -133,7 +133,7 @@ input.error::placeholder {
     justify-content: flex-start;
 }
 
-#stream-chats {
+#stream-embeds {
     display: flex;
     height: 100%;
 }
