@@ -21,7 +21,6 @@ class Stream {
         this._chat = null;
         this._resizeChat = false;
         this._doAPICalls = doAPICalls;
-        this._apiTimeout = null;  // Stores setTimeout reference for API calls
     }
 
     /**
@@ -35,28 +34,6 @@ class Stream {
      * Get new one with POST https://id.twitch.tv/oauth2/token?grant_type=client_credentials&client_id={}&client_secret={}
      */
     static get TWITCH_OAUTH_ID() { return "37ulc0tjj2hvz9hvjq2qpsf60mdzta"; }
-
-    /**
-     * Create a hh:ss display (or dd:hh:ss if >24 hours) for a stream's uptime
-     * @param {*} startTime the time a stream started. Must be parsable by JS's Date object
-     */
-    static get_uptime(startTime) {
-        let sec = Math.abs(new Date(startTime).getTime() - Date.now());
-        let mins = Math.floor(sec / 60000);
-        let hrs = Math.floor(mins / 60);
-        let days = Math.floor(hrs / 24);
-        mins = mins % 60;
-        hrs = hrs % 24;
-
-        days = days.toString().padStart(2, "0");
-        hrs = hrs.toString().padStart(2, "0");
-        mins = mins.toString().padStart(2, "0");
-        if (days == 0) {
-            return `${hrs}:${mins}`;
-        } else {
-            return `${days}:${hrs}:${mins}`;
-        }
-    }
 
     /**
      * Return username of streamer
@@ -242,10 +219,9 @@ class Stream {
         bannerBot.appendChild(streamInputWrapper);
         banner.appendChild(bannerBot);
 
-
-        if (this._doAPICalls) {
-            this._runAPICalls(viewerCount, isLiveIcon);
-        }
+        // For use with StreamManager._runAPICalls()
+        this._viewerCount = viewerCount;
+        this._isLiveIcon = isLiveIcon;
 
         return banner;
     }
@@ -296,52 +272,16 @@ class Stream {
         return iframe;
     }
 
-    /**
-     * Sets up API polling which will give statistics like viewer count, isLive, etc.
-     * It's only needed to call this method once per streamer since the method contains
-     * a setTimeout() which calls itself again to update the information periodically
-     * @param {dom} viewers span element which will have it's content updated
-     * @param {dom} liveIndicator div that add/remove live class from
-     */
-    _runAPICalls(viewers, liveIndicator) {
-        // TODO Move to StreamManager (use one API call instead of n-many calls)
-        console.info(`Polling ${this.getUsername()} (${this.getPlatform()})...`);
+    updateBannerInfo(text, title, isLive) {
+        this._viewerCount.textContent = text;
+        this._viewerCount.title = title;
+        this._isLiveIcon.title = title;
 
-        let request = new XMLHttpRequest();
-        switch(this.getPlatform()) {
-            case "twitch":
-                request.open("GET", "https://api.twitch.tv/helix/streams?user_login=" + this.getUsername(), true);
-
-                request.onload = function () {
-                    if (this.status == 429) {
-                        console.warn("Too many API calls! Removing interval (HTTP Status 429)");
-                        stopAPICalls();
-                        return;
-                    }
-
-                    let data = JSON.parse(this.response);
-
-                    if(data.data.length == 0) {
-                        viewers.textContent = "Not Live";
-                        liveIndicator.classList.remove("live");
-                        viewers.title = "";
-                        liveIndicator.title = "";
-                    } else {
-                        let stream = data.data[0];
-                        viewers.textContent = `${stream.viewer_count.toLocaleString()} viewers`;
-                        viewers.title = `Live for ${Stream.get_uptime(stream.started_at)}`;
-                        liveIndicator.title = `Live for ${Stream.get_uptime(stream.started_at)}`;
-                        liveIndicator.classList.add("live");
-                    }
-                };
-                request.setRequestHeader("CLIENT-ID", Stream.TWITCH_CLIENT_ID);
-                request.setRequestHeader("Authorization", `Bearer ${Stream.TWITCH_OAUTH_ID}`);
-                break;
+        if(isLive) {
+            this._isLiveIcon.classList.add("live");
+        } else {
+            this._isLiveIcon.classList.remove("live");
         }
-        request.send();
-
-        // Setup next run interval
-        this._apiTimeout = setTimeout(() => { this._runAPICalls(viewers, liveIndicator); }, 60 * 1000);
     }
 
     /**
@@ -359,14 +299,5 @@ class Stream {
             top.querySelector(".rightWrapper .viewerCount").style.removeProperty("display");
             return false;
         }
-    }
-
-    /**
-     * Stop API polling for said stream.
-     * *You can not restart API Polling again once this is called*
-     */
-    stopAPICalls() {
-        clearTimeout(this._apiTimeout);
-        return true;
     }
 }

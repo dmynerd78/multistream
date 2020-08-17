@@ -65,6 +65,28 @@ function readInputStreams() {
 }
 
 /**
+ * Create a hh:ss display (or dd:hh:ss if >24 hours) for a stream's uptime
+ * @param {*} startTime the time a stream started. Must be parsable by JS's Date object
+ */
+function get_uptime(startTime) {
+    let sec = Math.abs(new Date(startTime).getTime() - Date.now());
+    let mins = Math.floor(sec / 60000);
+    let hrs = Math.floor(mins / 60);
+    let days = Math.floor(hrs / 24);
+    mins = mins % 60;
+    hrs = hrs % 24;
+
+    days = days.toString().padStart(2, "0");
+    hrs = hrs.toString().padStart(2, "0");
+    mins = mins.toString().padStart(2, "0");
+    if (days == 0) {
+        return `${hrs}:${mins}`;
+    } else {
+        return `${days}:${hrs}:${mins}`;
+    }
+}
+
+/**
  * Clamps num within the between min and max
  * @param {int} num number to clamp
  * @param {int} min minimum return value
