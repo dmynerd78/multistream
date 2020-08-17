@@ -1,8 +1,15 @@
-// TODO Docstrings
 class StreamManager {
 
     // Format: ?stream1+stream2+stream3&option1+option2
     // Search streamer is on Twitch platform
+
+    /**
+     * Manage multiple Stream objects at a high level
+     * Expected to run as a Singleton
+     * @param {String} search String in format user1+user2+...&setting1+setting2...
+     * @param {DOM} columnsGen Reference to stream generation parent node
+     * @param {DOM} columnsRoot Reference do empty element in which to add all stream columns
+     */
     constructor(search, columnsGen, columnsRoot) {
         if (search.startsWith("?")) {
             search = search.substr(1);
@@ -30,10 +37,18 @@ class StreamManager {
         console.log({ "streams": this._streams, "settings": this._settings });
     }
 
+    /**
+     * Returns true if there are streams to display
+     */
     isValid() {
         return this._streams.length != 0;
     }
 
+    /**
+     * Dynamically add new stream to DOM
+     * @param {String} username Name of streamer to add
+     * @param {String} after Add new stream after this column (pass username)
+     */
     addStream(username, after) {
         let newStream = new Stream(this, username, this._doAPI);
         let newUsername = username.toLowerCase();
@@ -71,6 +86,10 @@ class StreamManager {
         return false;
     }
 
+    /**
+     * Remove a stream from DOM. If all streams are removed, show stream gen
+     * @param {String} username Channel to remove
+     */
     removeStream(username) {
         username = username.toLowerCase();
 
@@ -82,6 +101,9 @@ class StreamManager {
         resizeBanners();
     }
 
+    /**
+     * Update window.location.search with new streams/settings
+     */
     updateWindowSearch() {
         if (this._streams.length == 0) {
             this._columnsGen.classList.remove("hidden");
@@ -103,11 +125,20 @@ class StreamManager {
         }
     }
 
+    /**
+     * Get array of all Stream objects
+     * Order is what appears in DOM
+     */
     getStreamList() {
         return this._streams;
     }
 
+    /**
+     * Add all current streams to columnsRoot
+     */
     genAllColumns() {
+        this._columnsRoot.textContent = '';
+
         for (let index in this._streams) {
             let currStream = this._streams[index];
             this._columnsRoot.appendChild(currStream.getColumn(this._settings));
@@ -119,6 +150,9 @@ class StreamManager {
         resizeBanners();
     }
 
+    /**
+     * Poll Twitch API to get user live status + viewer count
+     */
     _runAPICalls() {
         let users = this._streams.map((el) => el.getUsername()).join("&user_login=");
         if(users == "") { return; }

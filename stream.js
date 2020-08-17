@@ -3,9 +3,9 @@
 class Stream {
     /**
      * Create a stream
-     * @param {Object} streamManager - StreamManager class this will be apart of
-     * @param {string} username - Username of the channel
-     * @param {boolean} doAPICalls - periodically call APIs for viewer count, live status, etc.
+     * @param {Object} streamManager StreamManager class this will be apart of
+     * @param {string} username Username of the channel
+     * @param {boolean} doAPICalls periodically call APIs for viewer count, live status, etc.
      */
     constructor(streamManager, username, doAPICalls = true) {
         if(username == "") { throw "Username empty"; }
@@ -272,6 +272,12 @@ class Stream {
         return iframe;
     }
 
+    /**
+     * Set banner right rightWrapper information
+     * @param {String} text Text to display next to live icon
+     * @param {String} title Hover text for text and live icon
+     * @param {boolean} isLive Sets live icon to red if stream is live
+     */
     updateBannerInfo(text, title, isLive) {
         this._viewerCount.textContent = text;
         this._viewerCount.title = title;
