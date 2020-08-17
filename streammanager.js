@@ -26,10 +26,11 @@ class StreamManager {
         // Could save as single binary number but would reduce readability elsewhere
         // Could also save each setting as a field but this would reduce readability when creating streams
         this._doAPI = this._settings.indexOf("noapi") == -1;
+        let hasBanner = this._settings.indexOf("nobanner") == -1;
         this._streams = search[0].split("+").filter(el => el.trim() != "")
                         .map(user => new Stream(this, user, this._doAPI));
         this._apiTimeout = null;  // Stores setTimeout reference for API calls
-        if(this._doAPI) {
+        if(this._doAPI && hasBanner) {
             this._runAPICalls();
         }
 

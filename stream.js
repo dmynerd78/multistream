@@ -279,6 +279,8 @@ class Stream {
      * @param {boolean} isLive Sets live icon to red if stream is live
      */
     updateBannerInfo(text, title, isLive) {
+        if(this._banner == null) { return; }
+
         this._viewerCount.textContent = text;
         this._viewerCount.title = title;
         this._isLiveIcon.title = title;
