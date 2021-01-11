@@ -33,7 +33,7 @@ class Stream {
      * Key will expire in a month or two and will need to be replaced
      * Get new one with POST https://id.twitch.tv/oauth2/token?grant_type=client_credentials&client_id={}&client_secret={}
      */
-    static get TWITCH_OAUTH_ID() { return "37ulc0tjj2hvz9hvjq2qpsf60mdzta"; }
+    static get TWITCH_OAUTH_ID() { return "7krrsak8rgtz85tjbjj11ix2nhyyys"; }
 
     /**
      * Return username of streamer
