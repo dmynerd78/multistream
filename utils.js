@@ -24,10 +24,10 @@ function readInputStreams() {
     var dataStreams = [];
 
     // Streamers
-    var streams = document.querySelectorAll("#stream-gen .input-group");
+    let streams = document.querySelectorAll("#stream-gen .input-group");
     let invalidInput = false;
     streams.forEach(function(inputGroup) {
-        username = inputGroup.children[0].value;
+        let username = inputGroup.children[0].value;
 
         inputGroup.children[0].classList.remove("error");
         inputGroup.children[1].classList.remove("error");
@@ -46,9 +46,9 @@ function readInputStreams() {
 
     // Extra Options
     var dataOptions = [];
-    noVideoChat = document.querySelector("#noVideoChat").value;
-    noBanner = document.querySelector("#noBanner").checked;
-    noAPICalls = document.querySelector("#noAPICalls").checked;
+    let noVideoChat = document.querySelector("#noVideoChat").value;
+    let noBanner = document.querySelector("#noBanner").checked;
+    let noAPICalls = document.querySelector("#noAPICalls").checked;
     if (noVideoChat != "") { dataOptions.push(noVideoChat); }
     if (noBanner) { dataOptions.push("nobanner"); }
     if (noAPICalls) {dataOptions.push("noapi"); }

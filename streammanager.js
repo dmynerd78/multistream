@@ -192,8 +192,8 @@ class StreamManager {
                     title = "Live for " + get_uptime(data.started_at);
                     isLive = true;
                 } else {
-                    text = "";
-                    title = "";
+                    text = "Offline";
+                    title = "Offline";
                     isLive = false;
                 }
 

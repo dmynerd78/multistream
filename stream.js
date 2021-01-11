@@ -269,6 +269,7 @@ class Stream {
         if (this._resizeChat) {
             return divWrapper;
         }
+
         return iframe;
     }
 
