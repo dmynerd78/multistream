@@ -165,8 +165,8 @@ class StreamManager {
 
         let that = this;
         request.onload = function () { // TODO Use .bind()
-            if (this.status == 429) {
-                console.warn("Too many API calls! Removing interval (HTTP Status 429)");
+            if(Math.floor(this.status / 100) === 4) {
+                console.warn(`Received Error ${this.status}! Removing interval`)l
                 that.stopAPICalls();
                 return;
             }
