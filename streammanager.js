@@ -166,7 +166,7 @@ class StreamManager {
         let that = this;
         request.onload = function () { // TODO Use .bind()
             if(Math.floor(this.status / 100) === 4) {
-                console.warn(`Received Error ${this.status}! Removing interval`)l
+                console.warn(`Received Error ${this.status}! Removing interval`);
                 that.stopAPICalls();
                 return;
             }
